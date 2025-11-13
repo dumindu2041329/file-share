@@ -284,41 +284,41 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="glass sticky top-0 z-50 shadow-lg backdrop-blur-xl">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent hover:scale-105 transition-transform cursor-pointer">
+        <div className="container mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
+          <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent hover:scale-105 transition-transform cursor-pointer">
             FileShare
           </h1>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
             <Link href="/files">
-              <Button variant="ghost" size="sm">View Files</Button>
+              <Button variant="ghost" size="sm" className="text-xs sm:text-sm">View Files</Button>
             </Link>
-            <span className="text-sm text-muted-foreground font-medium hidden md:inline">{user?.email}</span>
+            <span className="text-xs sm:text-sm text-muted-foreground font-medium hidden lg:inline">{user?.email}</span>
             <ThemeToggle />
-            <Button variant="ghost" size="icon" onClick={handleLogout} className="hover:scale-110 transition-transform" title="Logout">
-              <LogOut className="h-5 w-5" />
+            <Button variant="ghost" size="icon" onClick={handleLogout} className="hover:scale-110 transition-transform h-8 w-8 sm:h-9 sm:w-9" title="Logout">
+              <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 py-4 sm:py-6">
         {/* Analytics Dashboard */}
-        <div className="mb-6">
+        <div className="mb-4 sm:mb-6">
           <AnalyticsDashboard files={files} />
         </div>
 
         {/* Upload Section */}
-        <Card className="glass-card border-0 shadow-xl hover:shadow-2xl transition-all duration-300 mb-6">
+        <Card className="glass-card border-0 shadow-xl hover:shadow-2xl transition-all duration-300 mb-4 sm:mb-6">
           <CardHeader>
-            <CardTitle className="text-2xl flex items-center gap-2">
-              <Upload className="h-6 w-6 text-primary" />
+            <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
+              <Upload className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               Upload File
             </CardTitle>
-            <CardDescription className="text-base">Share your files with anyone via a secure link</CardDescription>
+            <CardDescription className="text-sm sm:text-base">Share your files with anyone via a secure link</CardDescription>
           </CardHeader>
           <CardContent>
             <div
-              className={`border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 ${
+              className={`border-2 border-dashed rounded-xl p-6 sm:p-8 text-center transition-all duration-300 ${
                 dragActive ? "border-primary bg-primary/10 scale-105 shadow-lg" : "border-muted-foreground/25 hover:border-muted-foreground/50"
               }`}
               onDragEnter={handleDrag}
@@ -326,13 +326,13 @@ export default function DashboardPage() {
               onDragOver={handleDrag}
               onDrop={handleDrop}
             >
-              <Upload className={`h-12 w-12 mx-auto mb-3 transition-all ${
+              <Upload className={`h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 transition-all ${
                 dragActive ? "text-primary scale-110" : "text-muted-foreground"
               }`} />
-              <p className="text-base font-semibold mb-2">
+              <p className="text-sm sm:text-base font-semibold mb-2">
                 Drag and drop your files here, or click to browse
               </p>
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-4">
                 Maximum file size: 10GB
               </p>
               <input

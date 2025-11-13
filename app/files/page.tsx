@@ -342,50 +342,50 @@ export default function FilesPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="glass sticky top-0 z-50 shadow-lg backdrop-blur-xl">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Link href="/dashboard" className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent hover:scale-105 transition-transform cursor-pointer">
+        <div className="container mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
+          <Link href="/dashboard" className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent hover:scale-105 transition-transform cursor-pointer">
             FileShare
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
             <Link href="/dashboard">
-              <Button variant="ghost" size="sm">Dashboard</Button>
+              <Button variant="ghost" size="sm" className="text-xs sm:text-sm">Dashboard</Button>
             </Link>
-            <span className="text-sm text-muted-foreground font-medium hidden md:inline">{user?.email}</span>
+            <span className="text-xs sm:text-sm text-muted-foreground font-medium hidden lg:inline">{user?.email}</span>
             <ThemeToggle />
-            <Button variant="ghost" size="icon" onClick={handleLogout} className="hover:scale-110 transition-transform" title="Logout">
-              <LogOut className="h-5 w-5" />
+            <Button variant="ghost" size="icon" onClick={handleLogout} className="hover:scale-110 transition-transform h-8 w-8 sm:h-9 sm:w-9" title="Logout">
+              <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 pb-16">
+      <main className="container mx-auto px-4 py-4 sm:py-6 md:py-8 pb-12 sm:pb-16">
         {/* Files List */}
         <Card className="glass-card border-0 shadow-xl">
           <CardHeader>
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col gap-3 sm:gap-4">
+              <div className="flex flex-col gap-3 sm:gap-4">
                 <div>
-                  <CardTitle className="text-2xl flex items-center gap-2">
-                    <FileText className="h-6 w-6 text-primary" />
+                  <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
+                    <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                     Your Files
                   </CardTitle>
-                  <CardDescription className="text-base mt-1">
+                  <CardDescription className="text-sm sm:text-base mt-1">
                     {filteredAndSortedFiles.length} of {files.length} {files.length === 1 ? "file" : "files"}
                     {selectedFiles.size > 0 && ` • ${selectedFiles.size} selected`}
                   </CardDescription>
                 </div>
                 {files.length > 0 && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     {selectedFiles.size > 0 && (
                     <Button
                       variant="destructive"
                       size="sm"
                       onClick={bulkDeleteFiles}
                       disabled={deleting}
-                      className="shadow-md hover:shadow-lg transition-all hover:scale-105"
+                      className="shadow-md hover:shadow-lg transition-all hover:scale-105 text-xs sm:text-sm"
                     >
-                      <Trash2 className="h-4 w-4 mr-2" />
+                      <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                       {deleting ? "Deleting..." : `Delete ${selectedFiles.size}`}
                     </Button>
                     )}
@@ -393,12 +393,12 @@ export default function FilesPage() {
                       variant="outline"
                       size="sm"
                       onClick={toggleSelectAll}
-                      className="hover:scale-105 transition-transform"
+                      className="hover:scale-105 transition-transform text-xs sm:text-sm"
                     >
                       {selectedFiles.size === filteredAndSortedFiles.length ? (
-                        <><Square className="h-4 w-4 mr-2" />Deselect All</>
+                        <><Square className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" /><span className="hidden sm:inline">Deselect All</span><span className="sm:hidden">Deselect</span></>
                       ) : (
-                        <><CheckSquare className="h-4 w-4 mr-2" />Select All</>
+                        <><CheckSquare className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" /><span className="hidden sm:inline">Select All</span><span className="sm:hidden">Select</span></>
                       )}
                     </Button>
                   </div>
@@ -493,65 +493,65 @@ export default function FilesPage() {
                   {paginatedFiles.map((file) => (
                     <div
                       key={file.id}
-                      className="flex items-center justify-between p-4 rounded-xl border bg-card hover:bg-accent/50 transition-all duration-300 hover:shadow-lg hover:scale-[1.01]"
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 rounded-xl border bg-card hover:bg-accent/50 transition-all duration-300 hover:shadow-lg hover:scale-[1.01] gap-3"
                     >
-                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                      <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0 w-full">
                         <Checkbox
                           checked={selectedFiles.has(file.id)}
                           onCheckedChange={() => toggleFileSelection(file.id)}
-                          className="mt-1"
+                          className="mt-1 flex-shrink-0"
                         />
-                        <div className="text-4xl">{getFileIcon(file.file_type)}</div>
+                        <div className="text-3xl sm:text-4xl flex-shrink-0">{getFileIcon(file.file_type)}</div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-medium truncate">{file.file_name}</h3>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                          <h3 className="font-medium truncate text-sm sm:text-base">{file.file_name}</h3>
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mt-1">
                             <span>{formatFileSize(file.file_size)}</span>
-                            <span>•</span>
-                            <span>{formatDate(file.created_at)}</span>
-                            <span>•</span>
+                            <span className="hidden sm:inline">•</span>
+                            <span className="hidden md:inline">{formatDate(file.created_at)}</span>
+                            <span className="hidden sm:inline">•</span>
                             <Badge variant="secondary" className="text-xs">
                               <Download className="h-3 w-3 mr-1" />
-                              {file.downloads} downloads
+                              {file.downloads}
                             </Badge>
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto justify-end">
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => openQRCode(file)}
                           title="Generate QR Code"
-                          className="hover:scale-110 transition-transform"
+                          className="hover:scale-110 transition-transform h-8 w-8 sm:h-9 sm:w-9"
                         >
-                          <QrCode className="h-4 w-4" />
+                          <QrCode className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => copyShareLink(file.share_token)}
                           title="Copy share link"
-                          className="hover:scale-110 transition-transform"
+                          className="hover:scale-110 transition-transform h-8 w-8 sm:h-9 sm:w-9"
                         >
-                          <Share2 className="h-4 w-4" />
+                          <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => downloadFromDashboard(file)}
                           title="Download"
-                          className="hover:scale-110 transition-transform"
+                          className="hover:scale-110 transition-transform h-8 w-8 sm:h-9 sm:w-9"
                         >
-                          <Download className="h-4 w-4" />
+                          <Download className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => deleteFile(file.id, file.file_key)}
                           title="Delete"
-                          className="hover:scale-110 transition-transform"
+                          className="hover:scale-110 transition-transform h-8 w-8 sm:h-9 sm:w-9"
                         >
-                          <Trash2 className="h-4 w-4 text-destructive" />
+                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 text-destructive" />
                         </Button>
                       </div>
                     </div>
@@ -560,8 +560,8 @@ export default function FilesPage() {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-between mt-6 pt-4 border-t">
-                    <div className="text-sm text-muted-foreground">
+                  <div className="flex flex-col sm:flex-row items-center justify-between mt-6 pt-4 border-t gap-3">
+                    <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
                       Showing {((currentPage - 1) * FILES_PER_PAGE) + 1} to {Math.min(currentPage * FILES_PER_PAGE, filteredAndSortedFiles.length)} of {filteredAndSortedFiles.length} files
                     </div>
                     <div className="flex items-center gap-2">
@@ -570,33 +570,46 @@ export default function FilesPage() {
                         size="sm"
                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                         disabled={currentPage === 1}
-                        className="hover:scale-105 transition-transform"
+                        className="hover:scale-105 transition-transform text-xs sm:text-sm"
                       >
-                        <ChevronLeft className="h-4 w-4 mr-1" />
-                        Previous
+                        <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                        <span className="hidden sm:inline">Previous</span>
+                        <span className="sm:hidden">Prev</span>
                       </Button>
                       <div className="flex items-center gap-1">
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                          <Button
-                            key={page}
-                            variant={page === currentPage ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setCurrentPage(page)}
-                            className="w-9 h-9 p-0 hover:scale-105 transition-transform"
-                          >
-                            {page}
-                          </Button>
-                        ))}
+                        {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                          let page;
+                          if (totalPages <= 5) {
+                            page = i + 1;
+                          } else if (currentPage <= 3) {
+                            page = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            page = totalPages - 4 + i;
+                          } else {
+                            page = currentPage - 2 + i;
+                          }
+                          return (
+                            <Button
+                              key={page}
+                              variant={page === currentPage ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setCurrentPage(page)}
+                              className="w-8 h-8 sm:w-9 sm:h-9 p-0 hover:scale-105 transition-transform text-xs sm:text-sm"
+                            >
+                              {page}
+                            </Button>
+                          );
+                        })}
                       </div>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                         disabled={currentPage === totalPages}
-                        className="hover:scale-105 transition-transform"
+                        className="hover:scale-105 transition-transform text-xs sm:text-sm"
                       >
                         Next
-                        <ChevronRight className="h-4 w-4 ml-1" />
+                        <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" />
                       </Button>
                     </div>
                   </div>

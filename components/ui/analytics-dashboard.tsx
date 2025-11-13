@@ -77,9 +77,9 @@ export function AnalyticsDashboard({ files }: AnalyticsDashboardProps) {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           const hasData = totalFiles > 0;
@@ -90,18 +90,18 @@ export function AnalyticsDashboard({ files }: AnalyticsDashboardProps) {
                 !hasData ? 'opacity-80' : ''
               }`}
             >
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">
+              <CardContent className="pt-4 sm:pt-6 pb-4 sm:pb-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="w-full">
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                       {stat.title}
                     </p>
-                    <p className={`text-2xl font-bold mt-2 ${
+                    <p className={`text-xl sm:text-2xl font-bold mt-1 sm:mt-2 ${
                       !hasData ? 'text-muted-foreground' : ''
                     }`}>{stat.value}</p>
                   </div>
-                  <div className={`p-3 rounded-full ${stat.bgColor} border ${stat.borderColor}`}>
-                    <Icon className={`h-6 w-6 ${stat.color}`} />
+                  <div className={`p-2 sm:p-3 rounded-full ${stat.bgColor} border ${stat.borderColor} self-end sm:self-auto`}>
+                    <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${stat.color}`} />
                   </div>
                 </div>
               </CardContent>

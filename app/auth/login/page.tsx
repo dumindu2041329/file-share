@@ -64,26 +64,38 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
       <div className="absolute inset-0 gradient-bg opacity-20" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,hsl(var(--background))_100%)]" />
-      <Card className="w-full max-w-md glass-card border-0 relative z-10 shadow-2xl animate-fade-in-up">
-        <CardHeader className="space-y-2 pt-8">
-          <CardTitle className="text-4xl font-bold text-center bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+      
+      {/* Logo Header */}
+      <div className="relative z-20 w-full p-4 sm:p-6">
+        <Link href="/" className="inline-block">
+          <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent hover:scale-105 transition-transform">
+            FileShare
+          </div>
+        </Link>
+      </div>
+
+      {/* Center Content */}
+      <div className="flex-1 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md glass-card border-0 relative z-10 shadow-2xl animate-fade-in-up">
+        <CardHeader className="space-y-2 pt-6 sm:pt-8 px-6 sm:px-8">
+          <CardTitle className="text-3xl sm:text-4xl font-bold text-center bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
             Welcome back
           </CardTitle>
-          <CardDescription className="text-center text-base">
+          <CardDescription className="text-center text-sm sm:text-base">
             Sign in to your account to continue
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6 px-8 pb-8">
-          <div className="grid grid-cols-2 gap-4">
+        <CardContent className="space-y-4 sm:space-y-6 px-6 sm:px-8 pb-6 sm:pb-8">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <Button
               variant="outline"
               onClick={() => handleOAuth("google")}
-              className="w-full hover:scale-105 transition-transform"
+              className="w-full hover:scale-105 transition-transform text-xs sm:text-sm"
             >
-              <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+              <svg className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" viewBox="0 0 24 24">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                   fill="#4285F4"
@@ -106,14 +118,14 @@ export default function LoginPage() {
             <Button
               variant="outline"
               onClick={() => handleOAuth("github")}
-              className="w-full hover:scale-105 transition-transform"
+              className="w-full hover:scale-105 transition-transform text-xs sm:text-sm"
             >
-              <Github className="mr-2 h-4 w-4" />
+              <Github className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
               GitHub
             </Button>
           </div>
 
-          <div className="relative my-8">
+          <div className="relative my-6 sm:my-8">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-muted" />
             </div>
@@ -161,7 +173,8 @@ export default function LoginPage() {
             </Link>
           </p>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }
