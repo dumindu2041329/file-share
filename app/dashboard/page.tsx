@@ -154,11 +154,10 @@ export default function DashboardPage() {
         throw new Error("AbortError");
       }
 
-      // Upload to storage (pass AbortSignal if supported)
-      // @ts-ignore - SDK may accept a third options arg (signal)
+      // Upload to storage
       const { data: uploadData, error: uploadError } = await insforge.storage
         .from("user-files")
-        .upload(file.name, file, { signal: controller.signal });
+        .upload(file.name, file);
 
       clearInterval(progressInterval);
 
