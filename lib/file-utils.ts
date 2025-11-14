@@ -33,7 +33,12 @@ export function validateFile(file: File, maxSize: number = 10 * 1024 * 1024 * 10
 }
 
 export function generateShareUrl(token: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5000';
+  // Use window.location.origin in browser, fall back to env var for SSR
+  const baseUrl = typeof window !== 'undefined' 
+    ? window.location.origin 
+    : (process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}` 
+        : 'http://localhost:5000');
   return `${baseUrl}/share/${token}`;
 }
 
