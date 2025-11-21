@@ -46,16 +46,12 @@ export default function SignUpPage() {
     try {
       const { data, error } = await insforge.auth.signInWithOAuth({
         provider,
-        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+        redirectTo: `${window.location.origin}/dashboard`,
       });
 
       if (error) {
         toast.error(error.message || `Failed to sign in with ${provider}`);
         return;
-      }
-
-      if (data?.url) {
-        window.location.href = data.url;
       }
     } catch (error: any) {
       toast.error(error.message || "An error occurred");
