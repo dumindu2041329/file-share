@@ -1,8 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FileShare 🚀
 
-## Getting Started
+> Built with: ⚛️ **React** · ▲ **Next.js** · 🎨 **Tailwind CSS** · 🧩 **Radix UI** · 📦 **Insforge SDK**
 
-First, run the development server:
+A modern, secure, and user‑friendly web application for sharing files instantly with anyone. FileShare lets you upload large files, generate secure shareable links, and manage your content from a clean, responsive dashboard.
+
+## Features ✨
+
+- 🔐 **Secure file sharing** – Encrypted storage and secure links so your files stay protected.
+- ⚡ **Fast uploads** – Optimized infrastructure for quick uploads and downloads.
+- 📎 **Support for all common file types** – Documents, images, videos, archives, and more.
+- 👥 **Collaboration‑ready** – Share files with teammates or clients in just a few clicks.
+- 📊 **Download insights** – Track how many times your files are accessed.
+- 🌓 **Modern UI with dark mode** – Polished, responsive interface with theme toggle.
+
+## Tech Stack 🛠️
+
+- **Framework:** Next.js (App Router)
+- **UI:** React, Tailwind CSS, Radix UI, Lucide Icons
+- **Notifications:** Sonner
+- **Auth & Backend:** Insforge SDK
+
+## Getting Started 💻
+
+### Prerequisites
+
+- Node.js (recommended LTS)
+- A package manager such as **npm**, **yarn**, **pnpm**, or **bun**
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone <your-repo-url>
+   cd file-share
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   # or
+   yarn install
+   # or
+   pnpm install
+   # or
+   bun install
+   ```
+
+### Running the development server
+
+Start the dev server on port **5000**:
 
 ```bash
 npm run dev
@@ -14,23 +59,43 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open [http://localhost:5000](http://localhost:5000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The main landing page is located at `app/page.tsx`. Changes are hot‑reloaded as you edit.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Building for production
 
-## Learn More
+Create an optimized production build:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Start the production server (also on port **5000** by default):
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run start
+```
 
-## Deploy on Vercel
+### Linting 🧹
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Run ESLint checks:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run lint
+```
+
+## Project Structure 📁
+
+- `app/` – App Router pages and layout, including the landing page and routes such as auth and dashboard.
+- `components/` – Reusable UI components.
+- `lib/` – Client libraries and configuration (e.g., Insforge client setup).
+- `public/` – Static assets.
+
+## Contributing 🤝
+
+Contributions, issues, and feature requests are welcome. Feel free to open an issue or submit a pull request to help improve FileShare.
+
+## License 📄
+
+This project is provided as‑is for learning and experimentation. Add your preferred license terms here if you plan to distribute or open‑source it.
