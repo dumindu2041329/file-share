@@ -103,7 +103,7 @@ Before you begin, ensure you have the following installed:
 
    ```bash
    NEXT_PUBLIC_INSFORGE_URL=your_insforge_url
-   NEXT_PUBLIC_INSFORGE_ANON_KEY=your_anon_key
+   NEXT_PUBLIC_INSFORGE_API_KEY=your_api_key
    ```
 
 ### Development
