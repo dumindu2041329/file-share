@@ -46,8 +46,7 @@ export default function SignUpPage() {
     try {
       const { data, error } = await insforge.auth.signInWithOAuth({
         provider,
-        redirectTo: window.location.origin + "/dashboard",
-        skipBrowserRedirect: true,
+        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
       });
 
       if (error) {

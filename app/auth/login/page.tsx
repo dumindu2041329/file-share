@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,9 +14,19 @@ import { insforge } from "@/lib/insforge";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const error = searchParams.get('error');
+    if (error === 'oauth_failed') {
+      toast.error('OAuth authentication failed. Please try again.');
+    } else if (error === 'no_code') {
+      toast.error('No authorization code received.');
+    }
+  }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,8 +56,7 @@ export default function LoginPage() {
     try {
       const { data, error } = await insforge.auth.signInWithOAuth({
         provider,
-        redirectTo: window.location.origin + "/dashboard",
-        skipBrowserRedirect: true,
+        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
       });
 
       if (error) {
