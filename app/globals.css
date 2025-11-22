@@ -126,6 +126,10 @@
   html {
     font-family: 'Inter', sans-serif;
   }
+  
+  a {
+    cursor: pointer;
+  }
 }
 
 /* Custom Gradient Scrollbar */
