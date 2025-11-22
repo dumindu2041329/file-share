@@ -3,6 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { AutoTheme } from "@/components/auto-theme";
+import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
   title: "FileShare - Secure File Sharing Made Simple",
@@ -32,6 +33,7 @@ export default function RootLayout({
           {children}
           <Toaster />
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
