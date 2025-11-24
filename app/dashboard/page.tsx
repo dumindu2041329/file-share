@@ -126,6 +126,8 @@ export default function DashboardPage() {
   };
 
   const uploadFile = async (file: File) => {
+    // Reset cancel flag at the start of each individual upload
+    cancelRequestedRef.current = false;
     setUploading(true);
     setUploadProgress(0);
 
