@@ -15,12 +15,12 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 interface FileData {
   id: string;
   file_name: string;
-  file_url: string;
-  file_key: string;
+  storage_url: string;
+  storage_key: string;
   file_size: number;
   file_type: string;
   share_token: string;
-  downloads: number;
+  download_count: number;
   created_at: string;
 }
 
@@ -69,19 +69,16 @@ export default function SharePage() {
 
     try {
       // Increment download count
-      await insforge.database
-        .from("files")
-        .update({ downloads: file.downloads + 1 })
-        .eq("id", file.id);
+      await insforge.database.rpc("increment_downloads", { file_id: file.id });
 
       // Open file URL in new tab to download
-      window.open(file.file_url, "_blank");
+      window.open(file.storage_url, "_blank");
 
       setDownloaded(true);
       toast.success("Download started!");
 
       // Update local state
-      setFile({ ...file, downloads: file.downloads + 1 });
+      setFile({ ...file, download_count: file.download_count + 1 });
     } catch (error: any) {
       toast.error(error.message || "Failed to download file");
     } finally {
@@ -152,7 +149,7 @@ export default function SharePage() {
               <p className="text-xs text-muted-foreground mb-1">Downloads</p>
               <Badge variant="secondary" className="font-medium text-xs inline-flex items-center">
                 <Download className="h-3 w-3 mr-1" />
-                {file.downloads}
+                {file.download_count}
               </Badge>
             </div>
           </div>

@@ -19,12 +19,12 @@ import Link from "next/link";
 interface FileData {
   id: string;
   file_name: string;
-  file_url: string;
-  file_key: string;
+  storage_url: string;
+  storage_key: string;
   file_size: number;
   file_type: string;
   share_token: string;
-  downloads: number;
+  download_count: number;
   created_at: string;
 }
 
@@ -82,9 +82,13 @@ export default function DashboardPage() {
 
   const loadFiles = async () => {
     try {
+      const { data: { user } } = await insforge.auth.getCurrentUser();
+      if (!user) return;
+
       const { data, error } = await insforge.database
         .from("files")
         .select("*")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -202,12 +206,12 @@ export default function DashboardPage() {
           {
             user_id: user.id,
             file_name: file.name,
-            file_url: uploadData.url,
-            file_key: uploadData.key,
+            storage_url: uploadData.url,
+            storage_key: uploadData.key,
             file_size: file.size,
             file_type: file.type,
             share_token: shareToken,
-            downloads: 0,
+            download_count: 0,
           },
         ])
         .select()

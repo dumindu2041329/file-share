@@ -28,12 +28,12 @@ import {
 interface FileData {
   id: string;
   file_name: string;
-  file_url: string;
-  file_key: string;
+  storage_url: string;
+  storage_key: string;
   file_size: number;
   file_type: string;
   share_token: string;
-  downloads: number;
+  download_count: number;
   created_at: string;
 }
 
@@ -48,10 +48,10 @@ export default function FilesPage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
-  const [fileToDelete, setFileToDelete] = useState<{ id: string; key: string } | null>(null);
+  const [fileToDelete, setFileToDelete] = useState<{ id: string; storage_key: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<"name" | "date" | "size" | "downloads">("date");
+  const [sortBy, setSortBy] = useState<"name" | "date" | "size" | "download_count">("date");
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
   const [selectedFileForQR, setSelectedFileForQR] = useState<FileData | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -125,20 +125,20 @@ export default function FilesPage() {
       // Increment download count in DB
       await insforge.database
         .from("files")
-        .update({ downloads: file.downloads + 1 })
+        .update({ download_count: file.download_count + 1 })
         .eq("id", file.id);
     } catch (error) {
       // Non-blocking: still allow opening the file
       console.error("Failed to increment downloads:", error);
     } finally {
       // Open the file and optimistically update UI
-      window.open(file.file_url, "_blank");
-      setFiles((prev) => prev.map((f) => (f.id === file.id ? { ...f, downloads: f.downloads + 1 } : f)));
+      window.open(file.storage_url, "_blank");
+      setFiles((prev) => prev.map((f) => (f.id === file.id ? { ...f, download_count: f.download_count + 1 } : f)));
     }
   };
 
-  const deleteFile = async (fileId: string, fileKey: string) => {
-    setFileToDelete({ id: fileId, key: fileKey });
+  const deleteFile = async (fileId: string, storageKey: string) => {
+    setFileToDelete({ id: fileId, storage_key: storageKey });
     setDeleteDialogOpen(true);
   };
 
@@ -149,7 +149,7 @@ export default function FilesPage() {
       // Delete from storage first
       const { error: storageError } = await insforge.storage
         .from("user-files")
-        .remove(fileToDelete.key);
+        .remove(fileToDelete.storage_key);
 
       if (storageError) {
         console.error("Storage deletion error:", storageError);
@@ -219,7 +219,7 @@ export default function FilesPage() {
           // Delete from storage
           const { error: storageError } = await insforge.storage
             .from("user-files")
-            .remove(file.file_key);
+            .remove(file.storage_key);
 
           if (storageError) {
             console.error(`Storage deletion error for ${file.file_name}:`, storageError);
@@ -311,8 +311,8 @@ export default function FilesPage() {
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         case "size":
           return b.file_size - a.file_size;
-        case "downloads":
-          return b.downloads - a.downloads;
+        case "download_count":
+          return b.download_count - a.download_count;
         default:
           return 0;
       }
@@ -461,7 +461,7 @@ export default function FilesPage() {
                       <DropdownMenuItem onClick={() => setSortBy("size")}>
                         Size (Largest First)
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setSortBy("downloads")}>
+                      <DropdownMenuItem onClick={() => setSortBy("download_count")}>
                         Downloads (Most First)
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -511,7 +511,7 @@ export default function FilesPage() {
                             <span className="hidden sm:inline">•</span>
                             <Badge variant="secondary" className="text-xs">
                               <Download className="h-3 w-3 mr-1" />
-                              {file.downloads}
+                              {file.download_count}
                             </Badge>
                           </div>
                         </div>
@@ -547,7 +547,7 @@ export default function FilesPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => deleteFile(file.id, file.file_key)}
+                          onClick={() => deleteFile(file.id, file.storage_key)}
                           title="Delete"
                           className="hover:scale-110 transition-transform h-8 w-8 sm:h-9 sm:w-9"
                         >

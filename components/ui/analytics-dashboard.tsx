@@ -8,7 +8,7 @@ interface FileData {
   file_name: string;
   file_size: number;
   file_type: string;
-  downloads: number;
+  download_count: number;
   created_at: string;
 }
 
@@ -19,7 +19,7 @@ interface AnalyticsDashboardProps {
 export function AnalyticsDashboard({ files }: AnalyticsDashboardProps) {
   // Calculate statistics
   const totalFiles = files.length;
-  const totalDownloads = files.reduce((sum, file) => sum + file.downloads, 0);
+  const totalDownloads = files.reduce((sum, file) => sum + file.download_count, 0);
   const totalStorage = files.reduce((sum, file) => sum + file.file_size, 0);
   
   // Format storage size
@@ -33,7 +33,7 @@ export function AnalyticsDashboard({ files }: AnalyticsDashboardProps) {
 
   // Get most popular file
   const mostPopular = files.length > 0 
-    ? files.reduce((prev, current) => (prev.downloads > current.downloads) ? prev : current)
+    ? files.reduce((prev, current) => (prev.download_count > current.download_count) ? prev : current)
     : null;
 
   // Get recent upload count (last 7 days)
