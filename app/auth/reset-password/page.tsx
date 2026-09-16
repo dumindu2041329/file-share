@@ -3,12 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuthShell } from "@/components/auth-shell";
 import { toast } from "sonner";
 import { insforge } from "@/lib/insforge";
 
@@ -75,111 +74,93 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden">
-      <div className="absolute inset-0 gradient-bg opacity-20" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,hsl(var(--background))_100%)]" />
-      
-      {/* Logo Header */}
-      <div className="relative z-20 w-full p-4 sm:p-6">
-        <Link href="/" className="inline-block">
-          <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent hover:scale-105 transition-transform">
-            FileShare
-          </div>
+    <AuthShell
+      eyebrow="Password reset"
+      title={resetSuccess ? "New password filed." : "Set a new password."}
+      description={
+        resetSuccess
+          ? "That's the account back in order. Taking you to the sign-in counter."
+          : "Enter the code we emailed you, then choose a password you'll remember."
+      }
+      footer={
+        <Link
+          href="/auth/login"
+          className="font-semibold text-foreground underline underline-offset-4 hover:text-primary"
+        >
+          Back to sign in
         </Link>
-      </div>
-
-      {/* Center Content */}
-      <div className="flex-1 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md glass-card border-0 relative z-10 shadow-2xl animate-fade-in-up">
-          <CardHeader className="space-y-2 pt-6 sm:pt-8 px-6 sm:px-8">
-            <CardTitle className="text-3xl sm:text-4xl font-bold text-center bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              {resetSuccess ? "Success!" : "Reset password"}
-            </CardTitle>
-            <CardDescription className="text-center text-sm sm:text-base">
-              {resetSuccess
-                ? "Your password has been reset successfully"
-                : "Enter the code from your email and choose a new password"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 sm:space-y-6 px-6 sm:px-8 pb-6 sm:pb-8">
-            {resetSuccess ? (
-              <div className="space-y-4 text-center">
-                <div className="flex justify-center">
-                  <CheckCircle2 className="h-16 w-16 text-green-500" />
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Redirecting to login page...
-                </p>
-                <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                  <Link href="/auth/login">Go to Login</Link>
-                </Button>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="code">Reset Code</Label>
-                  <Input
-                    id="code"
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    placeholder="Enter code from email"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    maxLength={6}
-                    required
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Enter the 6-digit code sent to your email
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">New Password</Label>
-                  <PasswordInput
-                    id="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={6}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Must be at least 6 characters
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
-                  <PasswordInput
-                    id="confirmPassword"
-                    placeholder="••••••••"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    minLength={6}
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all hover:scale-105"
-                  disabled={loading}
-                >
-                  {loading ? "Resetting..." : "Reset password"}
-                </Button>
-              </form>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+      }
+    >
+      {resetSuccess ? (
+        <div className="space-y-4">
+          <div className="border border-border bg-background px-4 py-6 text-center">
+            <p className="stamp text-muted-foreground">Password changed</p>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              Redirecting you to sign in…
+            </p>
+          </div>
+          <Button asChild className="h-11 w-full">
+            <Link href="/auth/login">Go to sign in</Link>
+          </Button>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="code">Reset code</Label>
+            <Input
+              id="code"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              placeholder="123456"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              maxLength={6}
+              className="h-12 text-center font-mono text-lg font-bold tracking-[0.4em]"
+              required
+            />
+            <p className="stamp text-muted-foreground">
+              The 6-digit code from the email
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">New password</Label>
+            <PasswordInput
+              id="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+            />
+            <p className="stamp text-muted-foreground">At least 6 characters</p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirm password</Label>
+            <PasswordInput
+              id="confirmPassword"
+              placeholder="••••••••"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              minLength={6}
+            />
+          </div>
+          <Button type="submit" className="h-11 w-full" disabled={loading}>
+            {loading ? "Filing…" : "Reset password"}
+          </Button>
+        </form>
+      )}
+    </AuthShell>
   );
 }

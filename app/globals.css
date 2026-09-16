@@ -3,73 +3,110 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+  TRANSFER DOCKET
+  -------------
+  The visual system is drawn from thermal shipping labels and claim-check
+  stubs: cool label stock (never warm cream), dense ink print, thick routing
+  rules, tractor-feed perforations, and machine-readable data in mono.
+  Colour is used only where a real system would use it — the handling stamp.
+*/
+
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 2px;
+
+  /* stock + ink */
+  --background: #edeeea;
+  --foreground: #16181b;
+
+  --card: #fbfbf9;
+  --card-foreground: #16181b;
+  --popover: #fbfbf9;
+  --popover-foreground: #16181b;
+
+  /* the handling stamp */
+  --primary: #e8a200;
+  --primary-foreground: #17190f;
+
+  --secondary: #e2e4de;
+  --secondary-foreground: #16181b;
+
+  --muted: #e6e8e2;
+  --muted-foreground: #6b706a;
+
+  --accent: #e4e6e0;
+  --accent-foreground: #16181b;
+
+  --destructive: #c4361a;
+  --destructive-foreground: #fbfbf9;
+
+  /* hairline print rule */
+  --border: #c8ccc3;
+  /* heavy structural rule */
+  --rule: #16181b;
+  --input: #c8ccc3;
+  --ring: #e8a200;
+
+  --chart-1: #e8a200;
+  --chart-2: #1f6f5c;
+  --chart-3: #3a4a5c;
+  --chart-4: #c4361a;
+  --chart-5: #7a6a2e;
+
+  --sidebar: #fbfbf9;
+  --sidebar-foreground: #16181b;
+  --sidebar-primary: #e8a200;
+  --sidebar-primary-foreground: #17190f;
+  --sidebar-accent: #e4e6e0;
+  --sidebar-accent-foreground: #16181b;
+  --sidebar-border: #c8ccc3;
+  --sidebar-ring: #e8a200;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* night depot: amber print on black stock */
+  --background: #0e100e;
+  --foreground: #eceee9;
+
+  --card: #161a16;
+  --card-foreground: #eceee9;
+  --popover: #161a16;
+  --popover-foreground: #eceee9;
+
+  --primary: #f0a81e;
+  --primary-foreground: #10120e;
+
+  --secondary: #232722;
+  --secondary-foreground: #eceee9;
+
+  --muted: #212520;
+  --muted-foreground: #8c928a;
+
+  --accent: #232722;
+  --accent-foreground: #eceee9;
+
+  --destructive: #e0553a;
+  --destructive-foreground: #10120e;
+
+  --border: #2b302a;
+  --rule: #eceee9;
+  --input: #2b302a;
+  --ring: #f0a81e;
+
+  --chart-1: #f0a81e;
+  --chart-2: #4fb79a;
+  --chart-3: #7c93ad;
+  --chart-4: #e0553a;
+  --chart-5: #c3af6a;
+
+  --sidebar: #161a16;
+  --sidebar-foreground: #eceee9;
+  --sidebar-primary: #f0a81e;
+  --sidebar-primary-foreground: #10120e;
+  --sidebar-accent: #232722;
+  --sidebar-accent-foreground: #eceee9;
+  --sidebar-border: #2b302a;
+  --sidebar-ring: #f0a81e;
 }
 
 @theme inline {
@@ -88,7 +125,9 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
+  --color-rule: var(--rule);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-chart-1: var(--chart-1);
@@ -104,104 +143,166 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-fira-code), ui-monospace, monospace;
+
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
+
+  /* print voice */
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  /* machine voice */
+  --font-mono: var(--font-martian), ui-monospace, "SFMono-Regular", monospace;
+
+  --text-stamp: 0.6875rem;
+  --text-stamp--line-height: 1;
 }
 
 @layer base {
   * {
     @apply border-border;
-    font-family: 'Inter', sans-serif;
   }
 
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-inter), sans-serif;
+    font-family: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
   }
 
   html {
-    font-family: var(--font-inter), sans-serif;
+    font-family: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
   }
 
   a {
     cursor: pointer;
   }
+
+  /* Numerals in a ledger never wobble. */
+  table,
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::selection {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
 }
 
-/* Custom Gradient Scrollbar */
+@layer components {
+  /* The machine voice: stamps, eyebrows, status marks, data labels. */
+  .stamp {
+    @apply font-mono text-stamp font-medium uppercase;
+    letter-spacing: 0.16em;
+    font-feature-settings: "tnum" 1;
+  }
+
+  /* Heavy routing rule — section boundary, like a label's header block. */
+  .rule-block {
+    @apply border-t-2 border-rule;
+  }
+
+  /* Tear-off line between a docket and its stub. */
+  .tear {
+    height: 1px;
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--border) 0 7px,
+      transparent 7px 14px
+    );
+  }
+
+  /* Tractor-feed perforation: a strip of pin holes along a paper edge. */
+  .pinfeed {
+    height: 6px;
+    background-image: radial-gradient(
+      circle at 3px 3px,
+      var(--border) 1.5px,
+      transparent 1.6px
+    );
+    background-size: 14px 6px;
+    background-repeat: repeat-x;
+  }
+
+  /* Content settling onto the page after the sheet is fed. */
+  .print-in {
+    animation: print-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .print-in-late {
+    animation: print-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+  }
+
+  /* The scanner sweeping a barcode while a transfer is read. */
+  .sweep {
+    animation: sweep 1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+}
+
+@keyframes print-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes sweep {
+  0% {
+    transform: translateX(-8%);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(108%);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .print-in,
+  .print-in-late,
+  .sweep {
+    animation: none;
+  }
+}
+
+/* Scrollbar: a printed rule, not a rainbow. */
 ::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: linear-gradient(180deg, 
-    rgba(59, 130, 246, 0.1) 0%, 
-    rgba(139, 92, 246, 0.1) 50%, 
-    rgba(236, 72, 153, 0.1) 100%);
-  border-radius: 10px;
+  background: var(--background);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, 
-    #3b82f6 0%, 
-    #8b5cf6 50%, 
-    #ec4899 100%);
-  border-radius: 10px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
-  transition: all 0.3s ease;
+  background: var(--border);
+  border: 2px solid var(--background);
+  border-radius: 0;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, 
-    #2563eb 0%, 
-    #7c3aed 50%, 
-    #db2777 100%);
-  border-radius: 10px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
+  background: var(--muted-foreground);
 }
 
-::-webkit-scrollbar-thumb:active {
-  background: linear-gradient(180deg, 
-    #1d4ed8 0%, 
-    #6d28d9 50%, 
-    #be185d 100%);
-}
-
-/* Dark mode scrollbar adjustments */
-.dark ::-webkit-scrollbar-track {
-  background: linear-gradient(180deg, 
-    rgba(59, 130, 246, 0.15) 0%, 
-    rgba(139, 92, 246, 0.15) 50%, 
-    rgba(236, 72, 153, 0.15) 100%);
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, 
-    #60a5fa 0%, 
-    #a78bfa 50%, 
-    #f472b6 100%);
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, 
-    #93c5fd 0%, 
-    #c4b5fd 50%, 
-    #f9a8d4 100%);
-}
-
-/* Firefox scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #3b82f6 rgba(59, 130, 246, 0.1);
-}
-
-.dark * {
-  scrollbar-color: #60a5fa rgba(59, 130, 246, 0.15);
+  scrollbar-color: var(--border) var(--background);
 }

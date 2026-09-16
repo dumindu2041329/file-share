@@ -2,14 +2,23 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Download, Trash2, LogOut, FileText, Share2, CheckSquare, Square, Search, Filter, SortAsc, QrCode, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Download,
+  Trash2,
+  LogOut,
+  Share2,
+  Search,
+  Filter,
+  SortAsc,
+  QrCode,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { insforge } from "@/lib/insforge";
-import { formatFileSize, getFileIcon, generateShareUrl, formatDate } from "@/lib/file-utils";
+import { formatFileSize, generateShareUrl, formatDate } from "@/lib/file-utils";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -42,6 +51,21 @@ const FILES_PER_PAGE = 10;
 
 type SortKey = "name" | "date" | "size" | "download_count";
 
+const SORT_LABELS: Record<SortKey, string> = {
+  date: "Newest first",
+  name: "Name (A–Z)",
+  size: "Largest first",
+  download_count: "Most collected",
+};
+
+/**
+ * The manifest grid. It reflows in three tiers so the ledger never has to
+ * scroll sideways: name + size + collected on tablets, type and date added
+ * once there's room for the full row.
+ */
+const ROW_GRID =
+  "grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-3 md:grid-cols-[auto_minmax(0,1fr)_7rem_6rem_auto] md:gap-x-4 lg:grid-cols-[auto_minmax(0,1fr)_10rem_7rem_6rem_11rem_auto]";
+
 function filterAndSortFiles(
   files: FileData[],
   searchQuery: string,
@@ -50,22 +74,19 @@ function filterAndSortFiles(
 ): FileData[] {
   let result = [...files];
 
-  // Apply search filter
   if (searchQuery) {
-    result = result.filter(file =>
+    result = result.filter((file) =>
       file.file_name.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }
 
-  // Apply type filter
   if (filterType !== "all") {
-    result = result.filter(file => {
-      const type = file.file_type.split('/')[0];
+    result = result.filter((file) => {
+      const type = file.file_type.split("/")[0];
       return type === filterType;
     });
   }
 
-  // Apply sorting
   result.sort((a, b) => {
     switch (sortBy) {
       case "name":
@@ -163,12 +184,11 @@ export default function FilesPage() {
   const copyShareLink = (token: string) => {
     const url = generateShareUrl(token);
     navigator.clipboard.writeText(url);
-    toast.success("Share link copied to clipboard!");
+    toast.success("Share link copied");
   };
 
   const downloadFromDashboard = async (file: FileData) => {
     try {
-      // Increment download count in DB
       await insforge.database
         .from("files")
         .update({ download_count: file.download_count + 1 })
@@ -177,9 +197,12 @@ export default function FilesPage() {
       // Non-blocking: still allow opening the file
       console.error("Failed to increment downloads:", error);
     } finally {
-      // Open the file and optimistically update UI
       window.open(file.storage_url, "_blank");
-      setFiles((prev) => prev.map((f) => (f.id === file.id ? { ...f, download_count: f.download_count + 1 } : f)));
+      setFiles((prev) =>
+        prev.map((f) =>
+          f.id === file.id ? { ...f, download_count: f.download_count + 1 } : f
+        )
+      );
     }
   };
 
@@ -192,29 +215,27 @@ export default function FilesPage() {
     if (!fileToDelete) return;
 
     try {
-      // Delete from storage first
       const { error: storageError } = await insforge.storage
         .from("user-files")
         .remove(fileToDelete.storage_key);
 
       if (storageError) {
         console.error("Storage deletion error:", storageError);
-        toast.error("Failed to delete file from storage");
+        toast.error("Failed to delete the file from storage");
         return;
       }
 
-      // Then delete from database
       const { error: dbError } = await insforge.database
         .from("files")
         .delete()
         .eq("id", fileToDelete.id);
 
       if (dbError) {
-        toast.error("Failed to delete file from database");
+        toast.error("Failed to delete the file record");
         return;
       }
 
-      toast.success("File deleted successfully!");
+      toast.success("File deleted");
       await loadFiles();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "An error occurred");
@@ -237,7 +258,7 @@ export default function FilesPage() {
     if (selectedFiles.size === filteredAndSortedFiles.length) {
       setSelectedFiles(new Set());
     } else {
-      setSelectedFiles(new Set(filteredAndSortedFiles.map(f => f.id)));
+      setSelectedFiles(new Set(filteredAndSortedFiles.map((f) => f.id)));
     }
   };
 
@@ -256,13 +277,10 @@ export default function FilesPage() {
     let errorCount = 0;
 
     try {
-      // Get the files to delete
-      const filesToDelete = files.filter(f => selectedFiles.has(f.id));
+      const filesToDelete = files.filter((f) => selectedFiles.has(f.id));
 
-      // Delete each file from storage and database
       for (const file of filesToDelete) {
         try {
-          // Delete from storage
           const { error: storageError } = await insforge.storage
             .from("user-files")
             .remove(file.storage_key);
@@ -273,7 +291,6 @@ export default function FilesPage() {
             continue;
           }
 
-          // Delete from database
           const { error: dbError } = await insforge.database
             .from("files")
             .delete()
@@ -292,19 +309,21 @@ export default function FilesPage() {
         }
       }
 
-      // Show results
       if (successCount > 0) {
-        toast.success(`${successCount} file${successCount > 1 ? 's' : ''} deleted successfully!`);
+        toast.success(
+          `${successCount} file${successCount > 1 ? "s" : ""} deleted`
+        );
       }
       if (errorCount > 0) {
-        toast.error(`Failed to delete ${errorCount} file${errorCount > 1 ? 's' : ''}`);
+        toast.error(`Failed to delete ${errorCount} file${errorCount > 1 ? "s" : ""}`);
       }
 
-      // Clear selection and reload
       setSelectedFiles(new Set());
       await loadFiles();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "An error occurred during bulk delete");
+      toast.error(
+        error instanceof Error ? error.message : "An error occurred during bulk delete"
+      );
     } finally {
       setDeleting(false);
     }
@@ -320,25 +339,39 @@ export default function FilesPage() {
     setQrDialogOpen(true);
   };
 
-  // Get unique file types for filter
+  const clearFilters = () => {
+    setSearchQuery("");
+    setFilterType("all");
+    setCurrentPage(1);
+  };
+
   const fileTypes = useMemo(() => {
-    const types = new Set(files.map(f => {
-      const type = f.file_type.split('/')[0];
-      return type || 'other';
-    }));
+    const types = new Set(
+      files.map((f) => {
+        const type = f.file_type.split("/")[0];
+        return type || "other";
+      })
+    );
     return Array.from(types);
   }, [files]);
 
-  // Filter and sort files
-  const filteredAndSortedFiles = filterAndSortFiles(files, searchQuery, filterType, sortBy);
+  const filteredAndSortedFiles = filterAndSortFiles(
+    files,
+    searchQuery,
+    filterType,
+    sortBy
+  );
 
-  // Pagination
   const totalPages = Math.ceil(filteredAndSortedFiles.length / FILES_PER_PAGE);
   const paginatedFiles = useMemo(() => {
     const start = (currentPage - 1) * FILES_PER_PAGE;
     const end = start + FILES_PER_PAGE;
     return filteredAndSortedFiles.slice(start, end);
   }, [filteredAndSortedFiles, currentPage]);
+
+  const allOnPageSelected =
+    paginatedFiles.length > 0 &&
+    paginatedFiles.every((f) => selectedFiles.has(f.id));
 
   if (loading) {
     return <LoadingSpinner />;
@@ -347,294 +380,357 @@ export default function FilesPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="glass sticky top-0 z-50 shadow-lg backdrop-blur-xl">
-        <div className="container mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
-          <Link href="/dashboard" className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent hover:scale-105 transition-transform cursor-pointer">
-            FileShare
+      <header className="sticky top-0 z-50 border-b-2 border-rule bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div className="container mx-auto flex items-center justify-between gap-2 px-4 py-3 sm:py-4">
+          <Link href="/" className="flex shrink-0 items-center gap-2">
+            <span aria-hidden className="size-2.5 bg-primary" />
+            <span className="text-lg font-extrabold tracking-tight sm:text-xl">
+              FileShare
+            </span>
           </Link>
-          <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm" className="text-xs sm:text-sm">Dashboard</Button>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <Link
+              href="/dashboard"
+              className="stamp px-2 text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Upload
             </Link>
-            <span className="text-xs sm:text-sm text-muted-foreground font-medium hidden lg:inline">{user?.email}</span>
+            <span className="hidden font-mono text-xs text-muted-foreground lg:inline">
+              {user?.email}
+            </span>
             <ThemeToggle />
-            <Button variant="ghost" size="icon" onClick={handleLogout} className="hover:scale-110 transition-transform h-8 w-8 sm:h-9 sm:w-9" title="Logout">
-              <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleLogout}
+              aria-label="Sign out"
+            >
+              <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-4 sm:py-6 md:py-8 pb-12 sm:pb-16">
-        {/* Files List */}
-        <Card className="glass-card border-0 shadow-xl">
-          <CardHeader>
-            <div className="flex flex-col gap-3 sm:gap-4">
-              <div className="flex flex-col gap-3 sm:gap-4">
-                <div>
-                  <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
-                    <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                    Your Files
-                  </CardTitle>
-                  <CardDescription className="text-sm sm:text-base mt-1">
-                    {filteredAndSortedFiles.length} of {files.length} {files.length === 1 ? "file" : "files"}
-                    {selectedFiles.size > 0 && ` • ${selectedFiles.size} selected`}
-                  </CardDescription>
-                </div>
-                {files.length > 0 && (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {selectedFiles.size > 0 && (
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={bulkDeleteFiles}
-                      disabled={deleting}
-                      className="shadow-md hover:shadow-lg transition-all hover:scale-105 text-xs sm:text-sm"
-                    >
-                      <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                      {deleting ? "Deleting..." : `Delete ${selectedFiles.size}`}
-                    </Button>
-                    )}
+      <main className="container mx-auto px-4 py-6 pb-16 sm:py-8">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="stamp text-muted-foreground">Manifest</p>
+            <h1 className="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl">
+              Your files
+            </h1>
+            <p className="tabular mt-2 text-sm text-muted-foreground">
+              {filteredAndSortedFiles.length} of {files.length}{" "}
+              {files.length === 1 ? "file" : "files"}
+              {selectedFiles.size > 0 && ` · ${selectedFiles.size} selected`}
+            </p>
+          </div>
+
+          {selectedFiles.size > 0 && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={bulkDeleteFiles}
+                disabled={deleting}
+              >
+                <Trash2 className="mr-2 h-3.5 w-3.5" />
+                {deleting ? "Deleting…" : `Delete ${selectedFiles.size}`}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedFiles(new Set())}
+              >
+                Clear
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {files.length > 0 && (
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <div className="relative flex-1">
+              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search by file name"
+                value={searchQuery}
+                aria-label="Search files by name"
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="pl-9"
+              />
+            </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full sm:w-auto">
+                  <Filter className="h-4 w-4" />
+                  <span className="truncate">
+                    {filterType === "all"
+                      ? "All types"
+                      : filterType.charAt(0).toUpperCase() + filterType.slice(1)}
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel className="stamp text-muted-foreground">
+                  File type
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => {
+                    setFilterType("all");
+                    setCurrentPage(1);
+                  }}
+                >
+                  All types
+                </DropdownMenuItem>
+                {fileTypes.map((type) => (
+                  <DropdownMenuItem
+                    key={type}
+                    onClick={() => {
+                      setFilterType(type);
+                      setCurrentPage(1);
+                    }}
+                  >
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full sm:w-auto">
+                  <SortAsc className="h-4 w-4" />
+                  <span className="truncate">{SORT_LABELS[sortBy]}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel className="stamp text-muted-foreground">
+                  Sort by
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {(Object.keys(SORT_LABELS) as SortKey[]).map((key) => (
+                  <DropdownMenuItem
+                    key={key}
+                    onClick={() => {
+                      setSortBy(key);
+                      setCurrentPage(1);
+                    }}
+                  >
+                    {SORT_LABELS[key]}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
+
+        {/* The ledger */}
+        <div className="mt-6 overflow-hidden rounded-md border bg-card">
+          {files.length === 0 ? (
+            <div className="px-6 py-16 text-center">
+              <p className="text-lg font-bold tracking-tight">
+                Nothing on the manifest yet
+              </p>
+              <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+                Files you upload show up here with a link, a QR code, and a
+                running download count.
+              </p>
+              <Button asChild className="mt-6">
+                <Link href="/dashboard">Upload a file</Link>
+              </Button>
+            </div>
+          ) : filteredAndSortedFiles.length === 0 ? (
+            <div className="px-6 py-16 text-center">
+              <p className="text-lg font-bold tracking-tight">
+                No files match that search
+              </p>
+              <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+                Try a shorter name, or widen the type filter.
+              </p>
+              <Button variant="outline" className="mt-6" onClick={clearFilters}>
+                Clear search and filters
+              </Button>
+            </div>
+          ) : (
+            <>
+              {/* Column headings */}
+              <div
+                className={`${ROW_GRID} hidden border-b border-rule px-4 py-3 md:grid sm:px-5`}
+              >
+                <Checkbox
+                  checked={allOnPageSelected}
+                  onCheckedChange={toggleSelectAll}
+                  aria-label="Select every file on this page"
+                />
+                <span className="stamp text-muted-foreground">File</span>
+                <span className="stamp hidden text-muted-foreground lg:block">
+                  Type
+                </span>
+                <span className="stamp text-muted-foreground">Size</span>
+                <span className="stamp text-muted-foreground">Collected</span>
+                <span className="stamp hidden text-muted-foreground lg:block">
+                  Issued
+                </span>
+                <span className="stamp text-right text-muted-foreground">
+                  Actions
+                </span>
+              </div>
+
+              {paginatedFiles.map((file) => {
+                const isSelected = selectedFiles.has(file.id);
+                return (
+                  <div
+                    key={file.id}
+                    className={`${ROW_GRID} border-b border-border px-4 py-4 transition-colors sm:px-5 ${
+                      isSelected ? "bg-primary/10" : "hover:bg-accent/60"
+                    }`}
+                  >
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => toggleFileSelection(file.id)}
+                      aria-label={`Select ${file.file_name}`}
+                    />
+                    <p className="truncate font-semibold tracking-tight">
+                      {file.file_name}
+                    </p>
+                    <span className="hidden truncate font-mono text-xs text-muted-foreground lg:block">
+                      {file.file_type || "unknown"}
+                    </span>
+                    <span className="tabular hidden text-sm text-muted-foreground md:block">
+                      {formatFileSize(file.file_size)}
+                    </span>
+                    <span className="tabular hidden text-sm text-muted-foreground md:block">
+                      {file.download_count}
+                    </span>
+                    <span className="tabular hidden text-sm text-muted-foreground lg:block">
+                      {formatDate(file.created_at)}
+                    </span>
+
+                    {/* Folded columns, for small screens */}
+                    <p className="tabular col-span-2 truncate font-mono text-xs text-muted-foreground md:hidden">
+                      {file.file_type || "unknown"} · {formatFileSize(file.file_size)} ·{" "}
+                      {file.download_count} collected · {formatDate(file.created_at)}
+                    </p>
+
+                    <div className="col-span-2 flex items-center justify-end gap-1 md:col-span-1">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => openQRCode(file)}
+                        aria-label={`Show the QR code for ${file.file_name}`}
+                      >
+                        <QrCode className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => copyShareLink(file.share_token)}
+                        aria-label={`Copy the share link for ${file.file_name}`}
+                      >
+                        <Share2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => downloadFromDashboard(file)}
+                        aria-label={`Download ${file.file_name}`}
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => deleteFile(file.id, file.storage_key)}
+                        aria-label={`Delete ${file.file_name}`}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex flex-col items-center justify-between gap-3 px-4 py-4 sm:flex-row sm:px-5">
+                  <p className="tabular stamp text-muted-foreground">
+                    {(currentPage - 1) * FILES_PER_PAGE + 1}–
+                    {Math.min(
+                      currentPage * FILES_PER_PAGE,
+                      filteredAndSortedFiles.length
+                    )}{" "}
+                    of {filteredAndSortedFiles.length}
+                  </p>
+                  <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={toggleSelectAll}
-                      className="hover:scale-105 transition-transform text-xs sm:text-sm"
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
                     >
-                      {selectedFiles.size === filteredAndSortedFiles.length ? (
-                        <><Square className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" /><span className="hidden sm:inline">Deselect All</span><span className="sm:hidden">Deselect</span></>
-                      ) : (
-                        <><CheckSquare className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" /><span className="hidden sm:inline">Select All</span><span className="sm:hidden">Select</span></>
-                      )}
+                      <ChevronLeft className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">Previous</span>
+                      <span className="sm:hidden">Prev</span>
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                        let page;
+                        if (totalPages <= 5) {
+                          page = i + 1;
+                        } else if (currentPage <= 3) {
+                          page = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          page = totalPages - 4 + i;
+                        } else {
+                          page = currentPage - 2 + i;
+                        }
+                        return (
+                          <Button
+                            key={page}
+                            variant={page === currentPage ? "default" : "outline"}
+                            size="icon-sm"
+                            className="tabular"
+                            aria-label={`Page ${page}`}
+                            aria-current={page === currentPage ? "page" : undefined}
+                            onClick={() => setCurrentPage(page)}
+                          >
+                            {page}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      }
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                      <ChevronRight className="h-3.5 w-3.5" />
                     </Button>
                   </div>
-                )}
-              </div>
-
-              {/* Search, Filter, Sort Controls */}
-              {files.length > 0 && (
-                <div className="flex flex-col sm:flex-row gap-3">
-                  {/* Search */}
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search files..."
-                      value={searchQuery}
-                      onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                      className="pl-9"
-                    />
-                  </div>
-
-                  {/* Filter by Type */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="w-full sm:w-auto">
-                        <Filter className="h-4 w-4 mr-2" />
-                        Filter: {filterType === "all" ? "All Types" : filterType.charAt(0).toUpperCase() + filterType.slice(1)}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>File Type</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => { setFilterType("all"); setCurrentPage(1); }}>
-                        All Types
-                      </DropdownMenuItem>
-                      {fileTypes.map(type => (
-                        <DropdownMenuItem key={type} onClick={() => { setFilterType(type); setCurrentPage(1); }}>
-                          {type.charAt(0).toUpperCase() + type.slice(1)}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  {/* Sort */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="w-full sm:w-auto">
-                        <SortAsc className="h-4 w-4 mr-2" />
-                        Sort: {sortBy.charAt(0).toUpperCase() + sortBy.slice(1)}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Sort By</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => { setSortBy("date"); setCurrentPage(1); }}>
-                        Date (Newest First)
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { setSortBy("name"); setCurrentPage(1); }}>
-                        Name (A-Z)
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { setSortBy("size"); setCurrentPage(1); }}>
-                        Size (Largest First)
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { setSortBy("download_count"); setCurrentPage(1); }}>
-                        Downloads (Most First)
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </div>
               )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            {files.length === 0 ? (
-              <div className="text-center py-12">
-                <FileText className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <p className="text-lg text-muted-foreground">No files uploaded yet</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  <Link href="/dashboard" className="text-primary hover:underline">Go to Dashboard</Link> to upload your first file
-                </p>
-              </div>
-            ) : filteredAndSortedFiles.length === 0 ? (
-              <div className="text-center py-12">
-                <Search className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <p className="text-lg text-muted-foreground">No files match your search</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Try adjusting your filters or search term
-                </p>
-              </div>
-            ) : (
-              <>
-                <div className="space-y-4">
-                  {paginatedFiles.map((file) => (
-                    <div
-                      key={file.id}
-                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 rounded-xl border bg-card hover:bg-accent/50 transition-all duration-300 hover:shadow-lg hover:scale-[1.01] gap-3"
-                    >
-                      <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0 w-full">
-                        <Checkbox
-                          checked={selectedFiles.has(file.id)}
-                          onCheckedChange={() => toggleFileSelection(file.id)}
-                          className="mt-1 shrink-0"
-                        />
-                        <div className="text-3xl sm:text-4xl shrink-0">{getFileIcon(file.file_type)}</div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium truncate text-sm sm:text-base">{file.file_name}</h3>
-                          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mt-1">
-                            <span>{formatFileSize(file.file_size)}</span>
-                            <span className="hidden sm:inline">•</span>
-                            <span className="hidden md:inline">{formatDate(file.created_at)}</span>
-                            <span className="hidden sm:inline">•</span>
-                            <Badge variant="secondary" className="text-xs">
-                              <Download className="h-3 w-3 mr-1" />
-                              {file.download_count}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto justify-end">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openQRCode(file)}
-                          title="Generate QR Code"
-                          className="hover:scale-110 transition-transform h-8 w-8 sm:h-9 sm:w-9"
-                        >
-                          <QrCode className="h-3 w-3 sm:h-4 sm:w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => copyShareLink(file.share_token)}
-                          title="Copy share link"
-                          className="hover:scale-110 transition-transform h-8 w-8 sm:h-9 sm:w-9"
-                        >
-                          <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => downloadFromDashboard(file)}
-                          title="Download"
-                          className="hover:scale-110 transition-transform h-8 w-8 sm:h-9 sm:w-9"
-                        >
-                          <Download className="h-3 w-3 sm:h-4 sm:w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deleteFile(file.id, file.storage_key)}
-                          title="Delete"
-                          className="hover:scale-110 transition-transform h-8 w-8 sm:h-9 sm:w-9"
-                        >
-                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="flex flex-col sm:flex-row items-center justify-between mt-6 pt-4 border-t gap-3">
-                    <div className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
-                      Showing {((currentPage - 1) * FILES_PER_PAGE) + 1} to {Math.min(currentPage * FILES_PER_PAGE, filteredAndSortedFiles.length)} of {filteredAndSortedFiles.length} files
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                        disabled={currentPage === 1}
-                        className="hover:scale-105 transition-transform text-xs sm:text-sm"
-                      >
-                        <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                        <span className="hidden sm:inline">Previous</span>
-                        <span className="sm:hidden">Prev</span>
-                      </Button>
-                      <div className="flex items-center gap-1">
-                        {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                          let page;
-                          if (totalPages <= 5) {
-                            page = i + 1;
-                          } else if (currentPage <= 3) {
-                            page = i + 1;
-                          } else if (currentPage >= totalPages - 2) {
-                            page = totalPages - 4 + i;
-                          } else {
-                            page = currentPage - 2 + i;
-                          }
-                          return (
-                            <Button
-                              key={page}
-                              variant={page === currentPage ? "default" : "outline"}
-                              size="sm"
-                              onClick={() => setCurrentPage(page)}
-                              className="w-8 h-8 sm:w-9 sm:h-9 p-0 hover:scale-105 transition-transform text-xs sm:text-sm"
-                            >
-                              {page}
-                            </Button>
-                          );
-                        })}
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                        disabled={currentPage === totalPages}
-                        className="hover:scale-105 transition-transform text-xs sm:text-sm"
-                      >
-                        Next
-                        <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </CardContent>
-        </Card>
+            </>
+          )}
+        </div>
       </main>
 
-      {/* Delete Confirmation Dialogs */}
       <ConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={confirmDeleteFile}
-        title="Delete File"
-        description="Are you sure you want to delete this file? This action cannot be undone."
-        confirmText="Delete"
-        cancelText="Cancel"
+        title="Delete this file?"
+        description="The link and QR code stop working right away, and this can't be undone."
+        confirmText="Delete file"
+        cancelText="Keep it"
         variant="destructive"
       />
 
@@ -642,14 +738,13 @@ export default function FilesPage() {
         open={bulkDeleteDialogOpen}
         onOpenChange={setBulkDeleteDialogOpen}
         onConfirm={confirmBulkDelete}
-        title="Delete Multiple Files"
-        description={`Are you sure you want to delete ${selectedFiles.size} file${selectedFiles.size > 1 ? 's' : ''}? This action cannot be undone.`}
-        confirmText={`Delete ${selectedFiles.size} file${selectedFiles.size > 1 ? 's' : ''}`}
-        cancelText="Cancel"
+        title={`Delete ${selectedFiles.size} ${selectedFiles.size > 1 ? "files" : "file"}?`}
+        description="Every link and QR code for these files stops working right away, and this can't be undone."
+        confirmText={`Delete ${selectedFiles.size}`}
+        cancelText="Keep them"
         variant="destructive"
       />
 
-      {/* QR Code Dialog */}
       {selectedFileForQR && (
         <QRCodeDialog
           open={qrDialogOpen}

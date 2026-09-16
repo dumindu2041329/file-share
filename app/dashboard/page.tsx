@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Upload, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { insforge } from "@/lib/insforge";
@@ -289,57 +288,81 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="glass sticky top-0 z-50 shadow-lg backdrop-blur-xl">
-        <div className="container mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
-          <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent hover:scale-105 transition-transform cursor-pointer">
-            FileShare
-          </h1>
-          <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
-            <Link href="/files">
-              <Button variant="ghost" size="sm" className="text-xs sm:text-sm">View Files</Button>
+      <header className="sticky top-0 z-50 border-b-2 border-rule bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div className="container mx-auto flex items-center justify-between gap-2 px-4 py-3 sm:py-4">
+          <Link href="/" className="flex shrink-0 items-center gap-2">
+            <span aria-hidden className="size-2.5 bg-primary" />
+            <span className="text-lg font-extrabold tracking-tight sm:text-xl">
+              FileShare
+            </span>
+          </Link>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <Link
+              href="/files"
+              className="stamp px-2 text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Your files
             </Link>
-            <span className="text-xs sm:text-sm text-muted-foreground font-medium hidden lg:inline">{user?.email}</span>
+            <span className="hidden font-mono text-xs text-muted-foreground lg:inline">
+              {user?.email}
+            </span>
             <ThemeToggle />
-            <Button variant="ghost" size="icon" onClick={handleLogout} className="hover:scale-110 transition-transform h-8 w-8 sm:h-9 sm:w-9" title="Logout">
-              <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleLogout}
+              aria-label="Sign out"
+            >
+              <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-4 sm:py-6">
-        {/* Analytics Dashboard */}
-        <div className="mb-4 sm:mb-6">
-          <AnalyticsDashboard files={files} />
+      <main className="container mx-auto px-4 py-6 pb-16 sm:py-8">
+        <div className="mb-6 flex items-end justify-between gap-4">
+          <div>
+            <p className="stamp text-muted-foreground">Your account</p>
+            <h1 className="mt-3 text-2xl font-extrabold tracking-tight sm:text-3xl">
+              Hand over a file
+            </h1>
+          </div>
         </div>
 
-        {/* Upload Section */}
-        <Card className="glass-card border-0 shadow-xl hover:shadow-2xl transition-all duration-300 mb-4 sm:mb-6">
-          <CardHeader>
-            <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
-              <Upload className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-              Upload File
-            </CardTitle>
-            <CardDescription className="text-sm sm:text-base">Share your files with anyone via a secure link</CardDescription>
-          </CardHeader>
-          <CardContent>
+        {/* Ledger totals */}
+        <AnalyticsDashboard files={files} />
+
+        {/* Intake counter */}
+        <div className="mt-6 overflow-hidden rounded-md border bg-card">
+          <div className="flex items-center justify-between gap-4 border-b border-border px-4 py-3 sm:px-5">
+            <span className="stamp font-bold">Intake</span>
+            <span className="stamp text-muted-foreground">
+              Max 200 MB per file
+            </span>
+          </div>
+
+          <div className="p-4 sm:p-6">
             <div
-              className={`border-2 border-dashed rounded-xl p-6 sm:p-8 text-center transition-all duration-300 ${
-                dragActive ? "border-primary bg-primary/10 scale-105 shadow-lg" : "border-muted-foreground/25 hover:border-muted-foreground/50"
+              className={`border border-dashed px-5 py-10 text-center transition-colors sm:py-14 ${
+                dragActive
+                  ? "border-primary bg-primary/10"
+                  : "border-border hover:border-muted-foreground/60"
               }`}
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
               onDragOver={handleDrag}
               onDrop={handleDrop}
             >
-              <Upload className={`h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 transition-all ${
-                dragActive ? "text-primary scale-110" : "text-muted-foreground"
-              }`} />
-              <p className="text-sm sm:text-base font-semibold mb-2">
-                Drag and drop your files here, or click to browse
+              <Upload
+                className={`mx-auto h-8 w-8 transition-colors ${
+                  dragActive ? "text-primary" : "text-muted-foreground"
+                }`}
+              />
+              <p className="mt-4 text-lg font-bold tracking-tight sm:text-xl">
+                Drag files here
               </p>
-              <p className="text-xs sm:text-sm text-muted-foreground mb-4">
-                Maximum file size: 200MB
+              <p className="mt-1.5 text-sm text-muted-foreground">
+                or pick them off your computer
               </p>
               <input
                 ref={fileInputRef}
@@ -352,39 +375,47 @@ export default function DashboardPage() {
               <Button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all hover:scale-105"
+                className="mt-6"
               >
-                {uploading ? "Uploading..." : "Select Files"}
+                {uploading ? "Uploading…" : "Choose files"}
               </Button>
+              <p className="mt-5 text-xs text-muted-foreground">
+                Any format. Documents, images, video, archives — up to 200 MB
+                each.
+              </p>
             </div>
 
             {uploading && (
-              <div className="mt-4">
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Uploading...</span>
-                  <span>{uploadProgress}%</span>
+              <div className="mt-6">
+                <div className="flex items-baseline justify-between gap-4">
+                  <span className="stamp text-muted-foreground">
+                    Uploading
+                  </span>
+                  <span className="tabular font-mono text-sm font-bold">
+                    {uploadProgress}%
+                  </span>
                 </div>
-                <Progress value={uploadProgress} />
-                <div className="flex justify-end mt-3">
+                <Progress value={uploadProgress} className="mt-3" />
+                <div className="mt-4 flex justify-end">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="hover:scale-105 transition-transform"
                     onClick={() => {
                       cancelRequestedRef.current = true;
-                      try { uploadAbortRef.current?.abort(); } catch {}
-                      toast("Canceling upload...");
+                      try {
+                        uploadAbortRef.current?.abort();
+                      } catch {}
+                      toast("Canceling upload…");
                     }}
                   >
-                    Cancel Upload
+                    Cancel upload
                   </Button>
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </main>
-
     </div>
   );
 }

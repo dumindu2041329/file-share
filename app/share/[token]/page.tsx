@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { Download, FileText, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Download, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { insforge } from "@/lib/insforge";
-import { formatFileSize, getFileIcon, formatDate } from "@/lib/file-utils";
+import { formatFileSize, formatDate } from "@/lib/file-utils";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { Barcode } from "@/components/barcode";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 interface FileData {
@@ -21,6 +21,31 @@ interface FileData {
   share_token: string;
   download_count: number;
   created_at: string;
+}
+
+function DocketBar() {
+  return (
+    <header className="border-b-2 border-rule">
+      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
+        <Link href="/" className="flex items-center gap-2">
+          <span className="size-2.5 bg-primary" aria-hidden="true" />
+          <span className="text-sm font-extrabold tracking-tight">FileShare</span>
+        </Link>
+        <span className="stamp text-muted-foreground">Claim check</span>
+      </div>
+    </header>
+  );
+}
+
+/** A docket: paper stock between two perforated feed strips. */
+function Sheet({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="w-full">
+      <div className="pinfeed" aria-hidden="true" />
+      <div className="border-x-2 border-rule bg-card">{children}</div>
+      <div className="pinfeed" aria-hidden="true" />
+    </div>
+  );
 }
 
 export default function SharePage() {
@@ -91,117 +116,141 @@ export default function SharePage() {
 
   if (!file) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-        <div className="absolute inset-0 gradient-bg opacity-20" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,hsl(var(--background))_100%)]" />
-        <Card className="w-full max-w-md glass-card border-0 relative z-10 text-center shadow-2xl animate-fade-in-up">
-          <CardContent className="pt-8 sm:pt-12 pb-6 sm:pb-8 px-6 sm:px-8">
-            <FileText className="h-16 w-16 sm:h-20 sm:w-20 mx-auto mb-4 sm:mb-6 text-muted-foreground opacity-50" />
-            <h2 className="text-2xl sm:text-3xl font-bold mb-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">File Not Found</h2>
-            <p className="text-muted-foreground mb-6 sm:mb-8 text-sm sm:text-base">
-              The file you&apos;re looking for doesn&apos;t exist or has been removed.
-            </p>
-            <Button asChild className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all hover:scale-105">
-              <Link href="/">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Go Home
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="flex min-h-screen flex-col bg-background">
+        <DocketBar />
+        <main className="flex flex-1 items-center justify-center p-4 sm:p-6">
+          <div className="print-in mx-auto w-full max-w-md">
+            <Sheet>
+              <div className="px-5 py-10 text-center sm:px-8 sm:py-12">
+                <p className="stamp text-muted-foreground">Not on the manifest</p>
+                <h1 className="mt-4 text-3xl font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-4xl">
+                  Nothing under this ticket.
+                </h1>
+                <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                  The link may have been withdrawn, or the ticket was copied
+                  wrong.
+                </p>
+
+                <div className="mt-6 border border-border bg-background px-4 py-3 text-left">
+                  <p className="stamp text-muted-foreground">Ticket presented</p>
+                  <p className="mt-1.5 break-all font-mono text-sm font-bold">
+                    {token || "—"}
+                  </p>
+                </div>
+
+                <Button asChild size="lg" className="mt-8 h-12 w-full">
+                  <Link href="/">
+                    <ArrowLeft className="mr-2 size-4" />
+                    Back to the counter
+                  </Link>
+                </Button>
+              </div>
+            </Sheet>
+          </div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-3 sm:p-4 relative overflow-hidden">
-      <div className="absolute inset-0 gradient-bg opacity-20" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,hsl(var(--background))_100%)]" />
-      
-      <Card className="w-full max-w-[calc(100vw-1.5rem)] sm:max-w-2xl glass-card border-0 relative z-10 shadow-2xl animate-fade-in-up">
-        <CardHeader className="text-center pt-4 sm:pt-6 md:pt-8 px-4 sm:px-6 md:px-8 pb-3 sm:pb-4">
-          <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl mb-3 sm:mb-4 md:mb-6 animate-pulse-slow">{getFileIcon(file.file_type)}</div>
-          <CardTitle className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2 sm:mb-3 break-words px-2">
-            {file.file_name}
-          </CardTitle>
-          <CardDescription className="text-sm sm:text-base md:text-lg mt-1 sm:mt-2">
-            Someone shared this file with you
-          </CardDescription>
-        </CardHeader>
+    <div className="flex min-h-screen flex-col bg-background">
+      <DocketBar />
 
-        <CardContent className="space-y-4 sm:space-y-6 md:space-y-8 px-4 sm:px-6 md:px-8 pb-6 sm:pb-8 md:pb-10">
-          {/* File Info */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 p-3 sm:p-4 md:p-6 rounded-lg sm:rounded-xl bg-muted/50 border border-muted">
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">File Size</p>
-              <p className="font-medium text-xs sm:text-sm md:text-base">{formatFileSize(file.file_size)}</p>
+      <main className="flex flex-1 items-center justify-center p-4 sm:p-6">
+        <div className="print-in mx-auto w-full max-w-2xl">
+          <Sheet>
+            {/* Consignment */}
+            <div className="border-b-2 border-rule px-5 py-6 sm:px-8 sm:py-8">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="stamp text-muted-foreground">One file, held for you</p>
+                  <h1 className="mt-3 break-words text-2xl font-extrabold leading-[1.05] tracking-[-0.03em] sm:text-4xl">
+                    {file.file_name}
+                  </h1>
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    Someone left this at the counter. Take it whenever you like.
+                  </p>
+                </div>
+                <span
+                  className={cn(
+                    "stamp shrink-0 border px-2 py-1",
+                    downloaded
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-foreground/40 text-muted-foreground"
+                  )}
+                >
+                  {downloaded ? "Collected" : "Ready"}
+                </span>
+              </div>
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">Uploaded</p>
-              <p className="font-medium text-xs sm:text-sm md:text-base">{formatDate(file.created_at)}</p>
-            </div>
-            <div className="col-span-2 sm:col-span-1">
-              <p className="text-xs text-muted-foreground mb-1">File Type</p>
-              <p className="font-medium text-xs sm:text-sm md:text-base truncate">{file.file_type || "Unknown"}</p>
-            </div>
-            <div className="col-span-2 sm:col-span-1">
-              <p className="text-xs text-muted-foreground mb-1">Downloads</p>
-              <Badge variant="secondary" className="font-medium text-xs inline-flex items-center">
-                <Download className="h-3 w-3 mr-1" />
-                {file.download_count}
-              </Badge>
-            </div>
-          </div>
 
-          {/* Download Button */}
-          <div className="space-y-2 sm:space-y-3">
-            <Button
-              onClick={handleDownload}
-              disabled={downloading}
-              size="lg"
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-2xl transition-all hover:scale-105 text-sm sm:text-base md:text-lg py-4 sm:py-5 md:py-6"
-            >
-              {downloading ? (
-                "Starting download..."
-              ) : downloaded ? (
-                <>
-                  <CheckCircle2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                  Download Again
-                </>
-              ) : (
-                <>
-                  <Download className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                  Download File
-                </>
+            {/* The ticket itself */}
+            <div className="border-b-2 border-rule px-5 py-6 sm:px-8">
+              <Barcode value={file.share_token} height={64} />
+            </div>
+
+            {/* Printed spec */}
+            <div className="grid grid-cols-2 gap-px bg-border sm:grid-cols-4">
+              <div className="bg-card px-5 py-4">
+                <p className="stamp text-muted-foreground">Size</p>
+                <p className="tabular mt-2 text-lg font-bold">
+                  {formatFileSize(file.file_size)}
+                </p>
+              </div>
+              <div className="bg-card px-5 py-4">
+                <p className="stamp text-muted-foreground">Type</p>
+                <p
+                  className="mt-2 truncate text-lg font-bold"
+                  title={file.file_type || "Unknown"}
+                >
+                  {file.file_type || "Unknown"}
+                </p>
+              </div>
+              <div className="bg-card px-5 py-4">
+                <p className="stamp text-muted-foreground">Issued</p>
+                <p className="tabular mt-2 text-lg font-bold">
+                  {formatDate(file.created_at)}
+                </p>
+              </div>
+              <div className="bg-card px-5 py-4">
+                <p className="stamp text-muted-foreground">Collected</p>
+                <p className="tabular mt-2 text-lg font-bold">
+                  {file.download_count}
+                </p>
+              </div>
+            </div>
+
+            {/* Stub */}
+            <div className="tear" aria-hidden="true" />
+            <div className="px-5 py-6 sm:px-8 sm:py-8">
+              <Button
+                onClick={handleDownload}
+                disabled={downloading}
+                size="lg"
+                className="h-14 w-full text-base"
+              >
+                <Download className="mr-2 size-5" />
+                {downloading
+                  ? "Opening the box…"
+                  : downloaded
+                    ? "Download again"
+                    : "Take the file"}
+              </Button>
+
+              {downloaded && (
+                <p className="stamp mt-3 text-center text-muted-foreground">
+                  If nothing happened, take it again
+                </p>
               )}
-            </Button>
 
-            {downloaded && (
-              <p className="text-xs sm:text-sm text-center text-muted-foreground">
-                If your download didn&apos;t start, please try again
+              <p className="mt-6 border-l-2 border-primary pl-3 text-xs leading-relaxed text-muted-foreground">
+                Only this ticket opens the file. Check who handed you the link
+                before you pass it on.
               </p>
-            )}
-          </div>
-
-          {/* Security Notice */}
-          <div className="p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30">
-            <p className="text-xs sm:text-sm text-center font-medium leading-relaxed">
-              🔒 This file is shared securely via FileShare. Always verify the source
-              before downloading files from the internet.
-            </p>
-          </div>
-
-          {/* Back to Home */}
-          <div className="text-center pt-2 sm:pt-4">
-            <Button variant="ghost" asChild className="hover:scale-105 transition-transform text-sm sm:text-base">
-              <Link href="/">
-                <ArrowLeft className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                Back to Home
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            </div>
+          </Sheet>
+        </div>
+      </main>
     </div>
   );
 }

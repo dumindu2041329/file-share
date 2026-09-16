@@ -96,15 +96,17 @@ export function QRCodeDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md w-[calc(100vw-2rem)] sm:w-full p-3 sm:p-6 max-h-[95vh] overflow-hidden flex flex-col">
-        <DialogHeader className="pb-2 shrink-0">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500/20 to-purple-600/20 shrink-0">
-              <Share2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+        <DialogHeader className="pb-2 shrink-0 border-b-2 border-rule">
+          <div className="flex items-center gap-2 sm:gap-3 pb-3">
+            <div className="flex size-8 sm:size-10 shrink-0 items-center justify-center border-2 border-rule bg-primary text-primary-foreground">
+              <Share2 className="size-4 sm:size-5" />
             </div>
             <div className="text-left min-w-0 flex-1 overflow-hidden">
-              <DialogTitle className="text-sm sm:text-base truncate">Share via QR Code</DialogTitle>
+              <DialogTitle className="text-sm sm:text-base truncate">
+                Scan to collect
+              </DialogTitle>
               <DialogDescription className="text-left text-xs truncate">
-                Scan to access: {fileName}
+                {fileName}
               </DialogDescription>
             </div>
           </div>
@@ -114,45 +116,41 @@ export function QRCodeDialog({
           {/* QR Code */}
           <div
             ref={qrRef}
-            className="p-3 sm:p-4 bg-white rounded-lg sm:rounded-xl shadow-lg border-2 border-primary/20 w-fit max-w-full shrink-0 mx-auto"
+            className="p-3 sm:p-4 bg-white border-2 border-rule w-fit max-w-full shrink-0 mx-auto"
           >
             <QRCodeCanvas
               value={shareUrl}
               size={qrSize}
               level="H"
               includeMargin={true}
-              imageSettings={{
-                src: "/icon.svg",
-                height: 24,
-                width: 24,
-                excavate: true,
-              }}
             />
           </div>
 
           {/* Share URL */}
-          <div className="w-full p-2 sm:p-3 bg-muted rounded-lg border overflow-hidden">
-            <p className="text-xs text-muted-foreground mb-1">Share Link</p>
-            <p className="text-xs sm:text-sm font-mono truncate break-all">{shareUrl}</p>
+          <div className="w-full p-2 sm:p-3 bg-background border border-border overflow-hidden">
+            <p className="stamp text-muted-foreground mb-1.5">Ticket link</p>
+            <p className="text-xs sm:text-sm font-mono truncate break-all">
+              {shareUrl}
+            </p>
           </div>
         </div>
 
-        <DialogFooter className="flex-col sm:flex-row gap-2 pt-2 shrink-0">
+        <DialogFooter className="flex-col sm:flex-row gap-2 pt-3 shrink-0 border-t border-border">
           <Button
             type="button"
             variant="outline"
             onClick={handleCopyLink}
             className="w-full sm:w-auto text-sm"
           >
-            <Copy className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-            Copy Link
+            <Copy className="mr-2 size-4" />
+            Copy link
           </Button>
           <Button
             type="button"
             onClick={handleDownloadQR}
-            className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-sm"
+            className="w-full sm:w-auto text-sm"
           >
-            <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+            <Download className="mr-2 size-4" />
             Download QR
           </Button>
         </DialogFooter>

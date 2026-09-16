@@ -1,8 +1,5 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Download, HardDrive, TrendingUp, FileText } from "lucide-react";
-
 interface FileData {
   id: string;
   file_name: string;
@@ -17,12 +14,10 @@ interface AnalyticsDashboardProps {
 }
 
 export function AnalyticsDashboard({ files }: AnalyticsDashboardProps) {
-  // Calculate statistics
   const totalFiles = files.length;
   const totalDownloads = files.reduce((sum, file) => sum + file.download_count, 0);
   const totalStorage = files.reduce((sum, file) => sum + file.file_size, 0);
-  
-  // Format storage size
+
   const formatStorage = (bytes: number) => {
     if (bytes === 0) return "0 B";
     const k = 1024;
@@ -31,80 +26,30 @@ export function AnalyticsDashboard({ files }: AnalyticsDashboardProps) {
     return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
   };
 
-  // Get recent upload count (last 7 days)
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  const recentUploads = files.filter(file => new Date(file.created_at) >= sevenDaysAgo).length;
+  const recentUploads = files.filter(
+    (file) => new Date(file.created_at) >= sevenDaysAgo
+  ).length;
 
+  // A ledger totals row: the four numbers you'd want at the foot of a manifest.
   const stats = [
-    {
-      title: "Total Files",
-      value: totalFiles.toString(),
-      icon: FileText,
-      color: "text-blue-600",
-      bgColor: "bg-blue-500/10",
-      borderColor: "border-blue-500/30"
-    },
-    {
-      title: "Total Downloads",
-      value: totalDownloads.toString(),
-      icon: Download,
-      color: "text-purple-600",
-      bgColor: "bg-purple-500/10",
-      borderColor: "border-purple-500/30"
-    },
-    {
-      title: "Storage Used",
-      value: formatStorage(totalStorage),
-      icon: HardDrive,
-      color: "text-pink-600",
-      bgColor: "bg-pink-500/10",
-      borderColor: "border-pink-500/30"
-    },
-    {
-      title: "Recent Uploads",
-      value: `${recentUploads} (7d)`,
-      icon: TrendingUp,
-      color: "text-green-600",
-      bgColor: "bg-green-500/10",
-      borderColor: "border-green-500/30"
-    }
+    { label: "Files", value: totalFiles.toString() },
+    { label: "Downloads", value: totalDownloads.toString() },
+    { label: "Storage used", value: formatStorage(totalStorage) },
+    { label: "Added this week", value: recentUploads.toString() },
   ];
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          const hasData = totalFiles > 0;
-          return (
-            <Card 
-              key={stat.title} 
-              className={`glass-card border ${stat.borderColor} hover:scale-105 transition-transform duration-300 ${
-                !hasData ? 'opacity-80' : ''
-              }`}
-            >
-              <CardContent className="pt-4 sm:pt-6 pb-4 sm:pb-6">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                  <div className="w-full">
-                    <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-                      {stat.title}
-                    </p>
-                    <p className={`text-xl sm:text-2xl font-bold mt-1 sm:mt-2 ${
-                      !hasData ? 'text-muted-foreground' : ''
-                    }`}>{stat.value}</p>
-                  </div>
-                  <div className={`p-2 sm:p-3 rounded-full ${stat.bgColor} border ${stat.borderColor} self-end sm:self-auto`}>
-                    <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${stat.color}`} />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
+    <div className="grid grid-cols-2 gap-px overflow-hidden rounded-md border border-border bg-border lg:grid-cols-4">
+      {stats.map((stat) => (
+        <div key={stat.label} className="bg-card px-4 py-4 sm:px-5 sm:py-5">
+          <p className="stamp text-muted-foreground">{stat.label}</p>
+          <p className="tabular mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
+            {stat.value}
+          </p>
+        </div>
+      ))}
     </div>
   );
 }
