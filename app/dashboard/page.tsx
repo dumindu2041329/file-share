@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, LogOut, FileText, ArrowRight } from "lucide-react";
+import { Upload, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
@@ -14,6 +13,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { nanoid } from "nanoid";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { AnalyticsDashboard } from "@/components/ui/analytics-dashboard";
+import type { UserSchema } from "@insforge/sdk";
 import Link from "next/link";
 
 interface FileData {
@@ -31,7 +31,7 @@ interface FileData {
 export default function DashboardPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<UserSchema | null>(null);
   const [files, setFiles] = useState<FileData[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -40,32 +40,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [dragActive, setDragActive] = useState(false);
 
-  useEffect(() => {
-    checkAuth();
-    loadFiles();
-  }, []);
-
-  // Refresh files when the tab regains focus or periodically
-  useEffect(() => {
-    const onFocus = () => {
-      loadFiles();
-    };
-    const onVisibility = () => {
-      if (!document.hidden) loadFiles();
-    };
-
-    window.addEventListener("focus", onFocus);
-    document.addEventListener("visibilitychange", onVisibility);
-    const interval = setInterval(loadFiles, 15000);
-
-    return () => {
-      window.removeEventListener("focus", onFocus);
-      document.removeEventListener("visibilitychange", onVisibility);
-      clearInterval(interval);
-    };
-  }, []);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const { data, error } = await insforge.auth.getCurrentUser();
       if (error || !data?.user) {
@@ -73,14 +48,14 @@ export default function DashboardPage() {
         return;
       }
       setUser(data.user);
-    } catch (error) {
+    } catch {
       router.push("/auth/login");
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
-  const loadFiles = async () => {
+  const loadFiles = useCallback(async () => {
     try {
       const { data: { user } } = await insforge.auth.getCurrentUser();
       if (!user) return;
@@ -100,7 +75,33 @@ export default function DashboardPage() {
     } catch (error) {
       console.error("Error loading files:", error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    void (async () => {
+      await Promise.all([checkAuth(), loadFiles()]);
+    })();
+  }, [checkAuth, loadFiles]);
+
+  // Refresh files when the tab regains focus or periodically
+  useEffect(() => {
+    const onFocus = () => {
+      loadFiles();
+    };
+    const onVisibility = () => {
+      if (!document.hidden) loadFiles();
+    };
+
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+    const interval = setInterval(loadFiles, 15000);
+
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+      clearInterval(interval);
+    };
+  }, [loadFiles]);
 
   const handleFileSelect = async (selectedFiles: FileList | null) => {
     if (!selectedFiles || selectedFiles.length === 0) return;
@@ -130,6 +131,8 @@ export default function DashboardPage() {
   };
 
   const uploadFile = async (file: File) => {
+    if (!user) return;
+
     // Reset cancel flag at the start of each individual upload
     cancelRequestedRef.current = false;
     setUploading(true);
@@ -138,7 +141,7 @@ export default function DashboardPage() {
     const controller = new AbortController();
     uploadAbortRef.current = controller;
 
-    let progressInterval: any;
+    let progressInterval: ReturnType<typeof setInterval> | undefined;
     try {
       // Simulate progress with ref checks
       progressInterval = setInterval(() => {
@@ -160,10 +163,11 @@ export default function DashboardPage() {
         throw new Error("AbortError");
       }
 
-      // Upload to storage
+      // Upload to storage under a per-user folder to avoid key collisions
+      const storageKey = `${user.id}/${nanoid(12)}-${file.name}`;
       const { data: uploadData, error: uploadError } = await insforge.storage
         .from("user-files")
-        .upload(file.name, file);
+        .upload(storageKey, file);
 
       clearInterval(progressInterval);
 
@@ -200,7 +204,7 @@ export default function DashboardPage() {
       }
 
       // Save file metadata to database
-      const { data: fileData, error: dbError } = await insforge.database
+      const { error: dbError } = await insforge.database
         .from("files")
         .insert([
           {
@@ -232,19 +236,16 @@ export default function DashboardPage() {
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-    } catch (error: any) {
-      if (error?.name === "AbortError" || error?.message === "AbortError" || cancelRequestedRef.current) {
-        // Ensure no file remnants in storage if upload somehow succeeded before cancel
-        if (uploadAbortRef.current) {
-          // Upload may have completed - attempt cleanup
-          try {
-            // Get the file key from the error context or try to reconstruct
-            // Note: If upload completed, we already cleaned it up above
-          } catch {}
-        }
+    } catch (error) {
+      const isAbort =
+        cancelRequestedRef.current ||
+        (error instanceof Error &&
+          (error.name === "AbortError" || error.message === "AbortError"));
+
+      if (isAbort) {
         toast("Upload canceled");
       } else {
-        toast.error(error.message || "An error occurred");
+        toast.error(error instanceof Error ? error.message : "An error occurred");
       }
     } finally {
       if (progressInterval) clearInterval(progressInterval);
@@ -338,7 +339,7 @@ export default function DashboardPage() {
                 Drag and drop your files here, or click to browse
               </p>
               <p className="text-xs sm:text-sm text-muted-foreground mb-4">
-                Maximum file size: 10GB
+                Maximum file size: 200MB
               </p>
               <input
                 ref={fileInputRef}

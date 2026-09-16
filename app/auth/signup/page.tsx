@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Github } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { GithubIcon } from "@/components/ui/github-icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,9 +14,24 @@ import { insforge } from "@/lib/insforge";
 
 export default function SignUpPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState<"form" | "verify">("form");
+  const [code, setCode] = useState("");
+  const [resending, setResending] = useState(false);
+
+  // Users sent here from the login page (unverified email) go straight to the
+  // verification step with their address pre-filled.
+  useEffect(() => {
+    const emailToVerify = searchParams.get("verify");
+    if (!emailToVerify) return;
+    void (async () => {
+      setEmail(emailToVerify);
+      setStep("verify");
+    })();
+  }, [searchParams]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,18 +48,70 @@ export default function SignUpPage() {
         return;
       }
 
-      toast.success("Account created successfully!");
-      router.push("/dashboard");
-    } catch (error: any) {
-      toast.error(error.message || "An error occurred");
+      if (data?.requireEmailVerification) {
+        setStep("verify");
+        toast.success("We sent a 6-digit verification code to your email.");
+        return;
+      }
+
+      if (data?.accessToken) {
+        toast.success("Account created successfully!");
+        router.push("/dashboard");
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setLoading(false);
     }
   };
 
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { error } = await insforge.auth.verifyEmail({
+        email,
+        otp: code.trim(),
+      });
+
+      if (error) {
+        toast.error(error.message || "Invalid or expired code");
+        return;
+      }
+
+      // verifyEmail() signs the user in automatically
+      toast.success("Email verified! Welcome to FileShare.");
+      router.push("/dashboard");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setResending(true);
+
+    try {
+      const { error } = await insforge.auth.resendVerificationEmail({ email });
+
+      if (error) {
+        toast.error(error.message || "Failed to resend code");
+        return;
+      }
+
+      toast.success("A new verification code is on its way.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "An error occurred");
+    } finally {
+      setResending(false);
+    }
+  };
+
   const handleOAuth = async (provider: "google" | "github") => {
     try {
-      const { data, error } = await insforge.auth.signInWithOAuth({
+      const { error } = await insforge.auth.signInWithOAuth({
         provider,
         redirectTo: `${window.location.origin}/dashboard`,
       });
@@ -53,8 +120,8 @@ export default function SignUpPage() {
         toast.error(error.message || `Failed to sign in with ${provider}`);
         return;
       }
-    } catch (error: any) {
-      toast.error(error.message || "An error occurred");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "An error occurred");
     }
   };
 
@@ -77,13 +144,49 @@ export default function SignUpPage() {
         <Card className="w-full max-w-md glass-card border-0 relative z-10 shadow-2xl animate-fade-in-up">
         <CardHeader className="space-y-2 pt-6 sm:pt-8 px-6 sm:px-8">
           <CardTitle className="text-3xl sm:text-4xl font-bold text-center bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Create an account
+            {step === "verify" ? "Verify your email" : "Create an account"}
           </CardTitle>
           <CardDescription className="text-center text-sm sm:text-base">
-            Sign up to start sharing files securely
+            {step === "verify"
+              ? `Enter the 6-digit code sent to ${email}`
+              : "Sign up to start sharing files securely"}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 sm:space-y-6 px-6 sm:px-8 pb-6 sm:pb-8">
+          {step === "verify" ? (
+            <form onSubmit={handleVerify} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="code">Verification code</Label>
+                <Input
+                  id="code"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  placeholder="123456"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  maxLength={6}
+                  required
+                />
+              </div>
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all hover:scale-105"
+                disabled={loading}
+              >
+                {loading ? "Verifying..." : "Verify email"}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full"
+                onClick={handleResend}
+                disabled={resending}
+              >
+                {resending ? "Sending..." : "Resend code"}
+              </Button>
+            </form>
+          ) : (
+            <>
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <Button
               variant="outline"
@@ -115,7 +218,7 @@ export default function SignUpPage() {
               onClick={() => handleOAuth("github")}
               className="w-full hover:scale-105 transition-transform text-xs sm:text-sm"
             >
-              <Github className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+              <GithubIcon className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
               GitHub
             </Button>
           </div>
@@ -168,6 +271,8 @@ export default function SignUpPage() {
               Sign in
             </Link>
           </p>
+             </>
+           )}
         </CardContent>
         </Card>
       </div>

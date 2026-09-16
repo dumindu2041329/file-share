@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Download, Trash2, LogOut, FileText, Share2, CheckSquare, Square, Search, Filter, SortAsc, QrCode, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { QRCodeDialog } from "@/components/ui/qr-code-dialog";
+import type { UserSchema } from "@insforge/sdk";
 import Link from "next/link";
 import {
   DropdownMenu,
@@ -39,9 +40,53 @@ interface FileData {
 
 const FILES_PER_PAGE = 10;
 
+type SortKey = "name" | "date" | "size" | "download_count";
+
+function filterAndSortFiles(
+  files: FileData[],
+  searchQuery: string,
+  filterType: string,
+  sortBy: SortKey
+): FileData[] {
+  let result = [...files];
+
+  // Apply search filter
+  if (searchQuery) {
+    result = result.filter(file =>
+      file.file_name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }
+
+  // Apply type filter
+  if (filterType !== "all") {
+    result = result.filter(file => {
+      const type = file.file_type.split('/')[0];
+      return type === filterType;
+    });
+  }
+
+  // Apply sorting
+  result.sort((a, b) => {
+    switch (sortBy) {
+      case "name":
+        return a.file_name.localeCompare(b.file_name);
+      case "date":
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      case "size":
+        return b.file_size - a.file_size;
+      case "download_count":
+        return b.download_count - a.download_count;
+      default:
+        return 0;
+    }
+  });
+
+  return result;
+}
+
 export default function FilesPage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<UserSchema | null>(null);
   const [files, setFiles] = useState<FileData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
@@ -51,15 +96,49 @@ export default function FilesPage() {
   const [fileToDelete, setFileToDelete] = useState<{ id: string; storage_key: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<"name" | "date" | "size" | "download_count">("date");
+  const [sortBy, setSortBy] = useState<SortKey>("date");
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
   const [selectedFileForQR, setSelectedFileForQR] = useState<FileData | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
-  useEffect(() => {
-    checkAuth();
-    loadFiles();
+  const checkAuth = useCallback(async () => {
+    try {
+      const { data, error } = await insforge.auth.getCurrentUser();
+      if (error || !data?.user) {
+        router.push("/auth/login");
+        return;
+      }
+      setUser(data.user);
+    } catch {
+      router.push("/auth/login");
+    } finally {
+      setLoading(false);
+    }
+  }, [router]);
+
+  const loadFiles = useCallback(async () => {
+    try {
+      const { data, error } = await insforge.database
+        .from("files")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        toast.error("Failed to load files");
+        return;
+      }
+
+      setFiles(data || []);
+    } catch (error) {
+      console.error("Error loading files:", error);
+    }
   }, []);
+
+  useEffect(() => {
+    void (async () => {
+      await Promise.all([checkAuth(), loadFiles()]);
+    })();
+  }, [checkAuth, loadFiles]);
 
   // Refresh files when the tab regains focus or periodically
   useEffect(() => {
@@ -79,40 +158,7 @@ export default function FilesPage() {
       document.removeEventListener("visibilitychange", onVisibility);
       clearInterval(interval);
     };
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const { data, error } = await insforge.auth.getCurrentUser();
-      if (error || !data?.user) {
-        router.push("/auth/login");
-        return;
-      }
-      setUser(data.user);
-    } catch (error) {
-      router.push("/auth/login");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadFiles = async () => {
-    try {
-      const { data, error } = await insforge.database
-        .from("files")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        toast.error("Failed to load files");
-        return;
-      }
-
-      setFiles(data || []);
-    } catch (error) {
-      console.error("Error loading files:", error);
-    }
-  };
+  }, [loadFiles]);
 
   const copyShareLink = (token: string) => {
     const url = generateShareUrl(token);
@@ -170,8 +216,8 @@ export default function FilesPage() {
 
       toast.success("File deleted successfully!");
       await loadFiles();
-    } catch (error: any) {
-      toast.error(error.message || "An error occurred");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setFileToDelete(null);
     }
@@ -257,8 +303,8 @@ export default function FilesPage() {
       // Clear selection and reload
       setSelectedFiles(new Set());
       await loadFiles();
-    } catch (error: any) {
-      toast.error(error.message || "An error occurred during bulk delete");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "An error occurred during bulk delete");
     } finally {
       setDeleting(false);
     }
@@ -284,42 +330,7 @@ export default function FilesPage() {
   }, [files]);
 
   // Filter and sort files
-  const filteredAndSortedFiles = useMemo(() => {
-    let result = [...files];
-
-    // Apply search filter
-    if (searchQuery) {
-      result = result.filter(file =>
-        file.file_name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Apply type filter
-    if (filterType !== "all") {
-      result = result.filter(file => {
-        const type = file.file_type.split('/')[0];
-        return type === filterType;
-      });
-    }
-
-    // Apply sorting
-    result.sort((a, b) => {
-      switch (sortBy) {
-        case "name":
-          return a.file_name.localeCompare(b.file_name);
-        case "date":
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        case "size":
-          return b.file_size - a.file_size;
-        case "download_count":
-          return b.download_count - a.download_count;
-        default:
-          return 0;
-      }
-    });
-
-    return result;
-  }, [files, searchQuery, filterType, sortBy]);
+  const filteredAndSortedFiles = filterAndSortFiles(files, searchQuery, filterType, sortBy);
 
   // Pagination
   const totalPages = Math.ceil(filteredAndSortedFiles.length / FILES_PER_PAGE);
@@ -328,11 +339,6 @@ export default function FilesPage() {
     const end = start + FILES_PER_PAGE;
     return filteredAndSortedFiles.slice(start, end);
   }, [filteredAndSortedFiles, currentPage]);
-
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, filterType, sortBy]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -414,7 +420,7 @@ export default function FilesPage() {
                     <Input
                       placeholder="Search files..."
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
                       className="pl-9"
                     />
                   </div>
@@ -430,11 +436,11 @@ export default function FilesPage() {
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>File Type</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => setFilterType("all")}>
+                      <DropdownMenuItem onClick={() => { setFilterType("all"); setCurrentPage(1); }}>
                         All Types
                       </DropdownMenuItem>
                       {fileTypes.map(type => (
-                        <DropdownMenuItem key={type} onClick={() => setFilterType(type)}>
+                        <DropdownMenuItem key={type} onClick={() => { setFilterType(type); setCurrentPage(1); }}>
                           {type.charAt(0).toUpperCase() + type.slice(1)}
                         </DropdownMenuItem>
                       ))}
@@ -452,16 +458,16 @@ export default function FilesPage() {
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Sort By</DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => setSortBy("date")}>
+                      <DropdownMenuItem onClick={() => { setSortBy("date"); setCurrentPage(1); }}>
                         Date (Newest First)
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setSortBy("name")}>
+                      <DropdownMenuItem onClick={() => { setSortBy("name"); setCurrentPage(1); }}>
                         Name (A-Z)
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setSortBy("size")}>
+                      <DropdownMenuItem onClick={() => { setSortBy("size"); setCurrentPage(1); }}>
                         Size (Largest First)
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setSortBy("download_count")}>
+                      <DropdownMenuItem onClick={() => { setSortBy("download_count"); setCurrentPage(1); }}>
                         Downloads (Most First)
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -499,9 +505,9 @@ export default function FilesPage() {
                         <Checkbox
                           checked={selectedFiles.has(file.id)}
                           onCheckedChange={() => toggleFileSelection(file.id)}
-                          className="mt-1 flex-shrink-0"
+                          className="mt-1 shrink-0"
                         />
-                        <div className="text-3xl sm:text-4xl flex-shrink-0">{getFileIcon(file.file_type)}</div>
+                        <div className="text-3xl sm:text-4xl shrink-0">{getFileIcon(file.file_type)}</div>
                         <div className="flex-1 min-w-0">
                           <h3 className="font-medium truncate text-sm sm:text-base">{file.file_name}</h3>
                           <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mt-1">

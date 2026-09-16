@@ -96,9 +96,9 @@ export function QRCodeDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md w-[calc(100vw-2rem)] sm:w-full p-3 sm:p-6 max-h-[95vh] overflow-hidden flex flex-col">
-        <DialogHeader className="pb-2 flex-shrink-0">
+        <DialogHeader className="pb-2 shrink-0">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500/20 to-purple-600/20 flex-shrink-0">
+            <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500/20 to-purple-600/20 shrink-0">
               <Share2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             </div>
             <div className="text-left min-w-0 flex-1 overflow-hidden">
@@ -114,7 +114,7 @@ export function QRCodeDialog({
           {/* QR Code */}
           <div
             ref={qrRef}
-            className="p-3 sm:p-4 bg-white rounded-lg sm:rounded-xl shadow-lg border-2 border-primary/20 w-fit max-w-full flex-shrink-0 mx-auto"
+            className="p-3 sm:p-4 bg-white rounded-lg sm:rounded-xl shadow-lg border-2 border-primary/20 w-fit max-w-full shrink-0 mx-auto"
           >
             <QRCodeCanvas
               value={shareUrl}
@@ -137,7 +137,7 @@ export function QRCodeDialog({
           </div>
         </div>
 
-        <DialogFooter className="flex-col sm:flex-row gap-2 pt-2 flex-shrink-0">
+        <DialogFooter className="flex-col sm:flex-row gap-2 pt-2 shrink-0">
           <Button
             type="button"
             variant="outline"

@@ -1,7 +1,7 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, Download, HardDrive, TrendingUp, FileText } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Download, HardDrive, TrendingUp, FileText } from "lucide-react";
 
 interface FileData {
   id: string;
@@ -30,11 +30,6 @@ export function AnalyticsDashboard({ files }: AnalyticsDashboardProps) {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
   };
-
-  // Get most popular file
-  const mostPopular = files.length > 0 
-    ? files.reduce((prev, current) => (prev.download_count > current.download_count) ? prev : current)
-    : null;
 
   // Get recent upload count (last 7 days)
   const sevenDaysAgo = new Date();

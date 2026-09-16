@@ -170,7 +170,7 @@ file-share/
 ├── public/                 # Static assets (images, fonts, etc.)
 ├── package.json            # Project dependencies and scripts
 ├── tsconfig.json           # TypeScript configuration
-├── tailwind.config.ts      # Tailwind CSS configuration
+├── postcss.config.mjs      # PostCSS + Tailwind CSS v4 plugin
 └── next.config.js          # Next.js configuration
 ```
 

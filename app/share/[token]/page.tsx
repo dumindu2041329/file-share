@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
+import { useParams } from "next/navigation";
 import { Download, FileText, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +16,6 @@ interface FileData {
   id: string;
   file_name: string;
   storage_url: string;
-  storage_key: string;
   file_size: number;
   file_type: string;
   share_token: string;
@@ -26,7 +25,6 @@ interface FileData {
 
 export default function SharePage() {
   const params = useParams();
-  const router = useRouter();
   const token = params?.token as string;
 
   const [file, setFile] = useState<FileData | null>(null);
@@ -34,33 +32,34 @@ export default function SharePage() {
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
 
-  useEffect(() => {
-    if (token) {
-      loadFile();
-    }
-  }, [token]);
-
-  const loadFile = async () => {
+  const loadFile = useCallback(async () => {
     try {
-      const { data, error } = await insforge.database
-        .from("files")
-        .select("*")
-        .eq("share_token", token)
-        .single();
+      const { data, error } = await insforge.database.rpc("get_shared_file", {
+        p_token: token,
+      });
 
-      if (error || !data) {
+      const shared = Array.isArray(data) ? data[0] : data;
+
+      if (error || !shared) {
         toast.error("File not found");
         return;
       }
 
-      setFile(data);
+      setFile(shared);
     } catch (error) {
       console.error("Error loading file:", error);
       toast.error("Failed to load file");
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    if (!token) return;
+    void (async () => {
+      await loadFile();
+    })();
+  }, [token, loadFile]);
 
   const handleDownload = async () => {
     if (!file) return;
@@ -79,8 +78,8 @@ export default function SharePage() {
 
       // Update local state
       setFile({ ...file, download_count: file.download_count + 1 });
-    } catch (error: any) {
-      toast.error(error.message || "Failed to download file");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to download file");
     } finally {
       setDownloading(false);
     }
@@ -100,7 +99,7 @@ export default function SharePage() {
             <FileText className="h-16 w-16 sm:h-20 sm:w-20 mx-auto mb-4 sm:mb-6 text-muted-foreground opacity-50" />
             <h2 className="text-2xl sm:text-3xl font-bold mb-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">File Not Found</h2>
             <p className="text-muted-foreground mb-6 sm:mb-8 text-sm sm:text-base">
-              The file you're looking for doesn't exist or has been removed.
+              The file you&apos;re looking for doesn&apos;t exist or has been removed.
             </p>
             <Button asChild className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all hover:scale-105">
               <Link href="/">
@@ -179,7 +178,7 @@ export default function SharePage() {
 
             {downloaded && (
               <p className="text-xs sm:text-sm text-center text-muted-foreground">
-                If your download didn't start, please try again
+                If your download didn&apos;t start, please try again
               </p>
             )}
           </div>

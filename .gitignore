@@ -42,3 +42,21 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# AI agent artifacts
+graphify-out/
+
+# InsForge & AI agent skills
+.insforge
+.agent
+.agents
+.augment
+.claude
+.cline
+.github/copilot*
+.kilocode
+.qoder
+.qwen
+.roo
+.trae
+.windsurf

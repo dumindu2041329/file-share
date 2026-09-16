@@ -25,19 +25,17 @@ export default function LandingPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkAuth();
+    void (async () => {
+      try {
+        const { data, error } = await insforge.auth.getCurrentUser();
+        setIsAuthenticated(!error && !!data?.user);
+      } catch {
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
-
-  const checkAuth = async () => {
-    try {
-      const { data, error } = await insforge.auth.getCurrentUser();
-      setIsAuthenticated(!error && !!data?.user);
-    } catch (error) {
-      setIsAuthenticated(false);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleLogout = async () => {
     try {
@@ -45,8 +43,8 @@ export default function LandingPage() {
       setIsAuthenticated(false);
       toast.success("Logged out successfully!");
       router.push("/");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to logout");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to logout");
     }
   };
 
@@ -204,7 +202,7 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mt-12 sm:mt-16 md:mt-20 max-w-3xl mx-auto px-4">
               <div className="glass-card p-6 sm:p-8 rounded-2xl transform hover:scale-105 transition-all duration-300 hover:shadow-xl">
                 <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-br from-blue-600 to-purple-600 bg-clip-text text-transparent animate-pulse-slow">
-                  10GB
+                  200MB
                 </div>
                 <div className="text-xs sm:text-sm text-muted-foreground mt-2 sm:mt-3 font-medium">Max File Size</div>
               </div>
@@ -342,7 +340,7 @@ export default function LandingPage() {
               </div>
               <h3 className="text-2xl font-semibold mb-3">Upload Files</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Drag and drop your files or click to browse. It's that simple
+                Drag and drop your files or click to browse. It&apos;s that simple
               </p>
             </div>
 

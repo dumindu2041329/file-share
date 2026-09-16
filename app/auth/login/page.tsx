@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Github } from "lucide-react";
+import { GithubIcon } from "@/components/ui/github-icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,20 +33,25 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const { data, error } = await insforge.auth.signInWithPassword({
+      const { error } = await insforge.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
+        if (error.statusCode === 403) {
+          toast.error("Please verify your email before signing in.");
+          router.push(`/auth/signup?verify=${encodeURIComponent(email)}`);
+          return;
+        }
         toast.error(error.message || "Failed to sign in");
         return;
       }
 
       toast.success("Signed in successfully!");
       router.push("/dashboard");
-    } catch (error: any) {
-      toast.error(error.message || "An error occurred");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -54,7 +59,7 @@ export default function LoginPage() {
 
   const handleOAuth = async (provider: "google" | "github") => {
     try {
-      const { data, error } = await insforge.auth.signInWithOAuth({
+      const { error } = await insforge.auth.signInWithOAuth({
         provider,
         redirectTo: `${window.location.origin}/dashboard`,
       });
@@ -63,8 +68,8 @@ export default function LoginPage() {
         toast.error(error.message || `Failed to sign in with ${provider}`);
         return;
       }
-    } catch (error: any) {
-      toast.error(error.message || "An error occurred");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "An error occurred");
     }
   };
 
@@ -125,7 +130,7 @@ export default function LoginPage() {
               onClick={() => handleOAuth("github")}
               className="w-full hover:scale-105 transition-transform text-xs sm:text-sm"
             >
-              <Github className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+              <GithubIcon className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
               GitHub
             </Button>
           </div>
@@ -177,7 +182,7 @@ export default function LoginPage() {
           </form>
 
           <p className="text-center text-sm text-muted-foreground">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link
               href="/auth/signup"
               className="font-medium text-primary hover:underline"

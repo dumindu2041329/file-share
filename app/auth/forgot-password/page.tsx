@@ -20,7 +20,7 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      const { data, error } = await insforge.auth.sendResetPasswordEmail({
+      const { error } = await insforge.auth.sendResetPasswordEmail({
         email,
       });
 
@@ -30,9 +30,9 @@ export default function ForgotPasswordPage() {
       }
 
       setEmailSent(true);
-      toast.success("Password reset link sent! Check your email.");
-    } catch (error: any) {
-      toast.error(error.message || "An error occurred");
+      toast.success("Reset code sent! Check your email.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -61,20 +61,22 @@ export default function ForgotPasswordPage() {
             </CardTitle>
             <CardDescription className="text-center text-sm sm:text-base">
               {emailSent
-                ? "We've sent you a password reset link"
-                : "Enter your email and we'll send you a reset link"}
+                ? "We've sent you a password reset code"
+                : "Enter your email and we'll send you a reset code"}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 sm:space-y-6 px-6 sm:px-8 pb-6 sm:pb-8">
             {emailSent ? (
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground text-center">
-                  We've sent a password reset link to <strong>{email}</strong>. 
-                  Click the link in the email to reset your password.
+                  We&apos;ve sent a 6-digit password reset code to <strong>{email}</strong>.
                 </p>
                 <p className="text-sm text-muted-foreground text-center">
-                  Didn't receive the email? Check your spam folder or try again.
+                  Enter it on the next screen to choose a new password.
                 </p>
+                <Button asChild className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                  <Link href="/auth/reset-password">Enter reset code</Link>
+                </Button>
                 <Button
                   onClick={() => setEmailSent(false)}
                   variant="outline"

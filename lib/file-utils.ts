@@ -21,7 +21,7 @@ export function getFileIcon(fileType: string): string {
   return '📁';
 }
 
-export function validateFile(file: File, maxSize: number = 10 * 1024 * 1024 * 1024): { valid: boolean; error?: string } {
+export function validateFile(file: File, maxSize: number = 200 * 1024 * 1024): { valid: boolean; error?: string } {
   if (file.size > maxSize) {
     return {
       valid: false,

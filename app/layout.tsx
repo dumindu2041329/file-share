@@ -1,9 +1,22 @@
 import type { Metadata } from "next";
+import { Inter, Fira_Code } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { AutoTheme } from "@/components/auto-theme";
 import { Analytics } from "@vercel/analytics/react";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const firaCode = Fira_Code({
+  subsets: ["latin"],
+  variable: "--font-fira-code",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "FileShare - Secure File Sharing Made Simple",
@@ -16,12 +29,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Fira+Code:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-      </head>
+    <html
+      lang="en"
+      className={`${inter.variable} ${firaCode.variable}`}
+      suppressHydrationWarning
+    >
       <body className="antialiased">
         <ThemeProvider
           attribute="class"
